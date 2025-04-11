@@ -288,3 +288,19 @@
 html {
   scroll-behavior: smooth;
 }
+
+@media (max-width: 768px) {
+  .chat-wrapper {
+    flex-direction: column !important;
+    padding: 1rem !important;
+  }
+
+  .chat-container,
+  .chat-sidebar {
+    width: 100% !important;
+  }
+
+  .chat-message {
+    max-width: 100% !important;
+  }
+}
