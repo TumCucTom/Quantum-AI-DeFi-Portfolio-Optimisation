@@ -40,17 +40,17 @@ export default function Home() {
 
       <div className="relative z-10 flex flex-col items-center justify-start px-6 h-screen">
         {/* Title + Subtitle */}
-        <div className="text-center mt-32">
-          <h1 className="quantum-title text-7xl md:text-9xl font-bold mb-4">
+        <div className="text-center mt-36">
+          <h1 className="quantum-title text-6xl md:text-9xl font-bold mb-4">
             Cert<span className="text-orange-600">AI</span>nty Quantum
           </h1>
-          <p className="text-xl mt-16 text-blue-200/80">
+          <p className="text-l mt-16 text-blue-200/80">
             Quantum enhanced portfolio optimisation tools – made easy with AI
           </p>
         </div>
 
         {/* Buttons around 75% down */}
-        <div className="text-xl mt-auto mb-[30vh] flex justify-center gap-40 w-full max-w-5xl">
+        <div className="text-xl mt-auto mb-[28vh] flex justify-center gap-40 w-full max-w-5xl">
           {[
             {
               icon: <Bot className="h-10 w-10 text-blue-400"/>,
