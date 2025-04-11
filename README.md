@@ -1,6 +1,6 @@
-# DeFi Portfolio Optimisation
+# Supremacy AI
 
-DeFi Portfolio Optimisation enhanced with quantum algorithms and optimisation and explained with AI.
+[Supremacy](https://supremacy.thomasbale.com/) is a suite of AI tools for quantum enhanced portfolio optimisation.
 
 ## License
 
