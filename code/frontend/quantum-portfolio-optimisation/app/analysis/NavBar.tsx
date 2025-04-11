@@ -8,7 +8,7 @@ const NavBar: React.FC = () => {
       <div style={styles.logo}>Supremacy AI</div>
       <ul style={styles.links}>
         <li><Link href="/"><span style={styles.link}>Home</span></Link></li>
-        <li><Link href="/execute"><span style={styles.link}>Portfolio Optimisation</span></Link></li>
+        <li><Link href="/dashboard"><span style={styles.link}>Portfolio Optimisation</span></Link></li>
         <li><Link href="/assistant"><span style={styles.link}>Assistant</span></Link></li>
       </ul>
     </nav>
