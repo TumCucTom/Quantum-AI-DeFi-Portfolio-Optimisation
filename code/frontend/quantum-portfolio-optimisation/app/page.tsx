@@ -52,13 +52,13 @@ export default function Home() {
               icon: <Bot className="h-10 w-10 text-blue-400" />,
               text: "Quantum x DeFi AI Assistant",
               delay: "0s",
-              link: "/ai-assistant",
+              link: "/assistant",
             },
             {
               icon: <Wallet className="h-10 w-10 text-blue-400" />,
               text: "Quantum x DeFi Portfolio Optimisation",
               delay: "0.5s",
-              link: "/portfolio",
+              link: "/execute",
             },
             {
               icon: <LineChart className="h-10 w-10 text-blue-400" />,
