@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from 'react';
 
 const FullChatbot: React.FC = () => {
@@ -15,7 +16,7 @@ const FullChatbot: React.FC = () => {
   return (
     <div style={styles.container}>
       <h2>AI Chatbot</h2>
-      
+
       <div style={styles.chatWindow}>
         {messages.map((msg, index) => (
           <div key={index} style={styles.chatMessage}>
@@ -23,7 +24,7 @@ const FullChatbot: React.FC = () => {
           </div>
         ))}
       </div>
-      
+
       <div style={styles.inputContainer}>
         <input
           style={styles.input}
