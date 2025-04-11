@@ -40,7 +40,9 @@ export default function Home() {
 
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6">
         <div className="text-center mb-16 floating">
-          <h1 className="quantum-title text-6xl font-bold mb-4">Supremacy AI</h1>
+<h1 className="quantum-title text-6xl font-bold mb-4">
+  Cert<span className="text-orange-600">AI</span>nty Quantum
+</h1>
           <p className="text-xl text-blue-200/80">
             Quantum Computation and Information - Working offline
           </p>
@@ -88,7 +90,7 @@ export default function Home() {
             </div>
           ))}
         </div>
-        
+
         {/* Scroll indicator */}
         <Link href="#quantum-solutions" scroll={false}>
           <div className="scroll-indicator" onClick={() => {
@@ -102,7 +104,7 @@ export default function Home() {
           </div>
         </Link>
       </div>
-      
+
       {/* Full-width three-column section */}
       <div className="w-full">
         <ThreeColumnSection />
