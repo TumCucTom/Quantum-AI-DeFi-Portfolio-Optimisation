@@ -5,8 +5,8 @@ import { Inter } from "next/font/google";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Quantum x DeFi",
-  description: "Quantum Computation and Information Platform",
+  title: "CertAInty Quantum",
+  description: "Quantum enhanced portfolio optimisation explained with AI",
 };
 
 export default function RootLayout({

@@ -38,66 +38,72 @@ export default function Home() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500/20 rounded-full blur-[100px] animate-pulse delay-2000" />
       </div>
 
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6">
-        <div className="text-center mb-16 floating">
-<h1 className="quantum-title text-6xl font-bold mb-4">
-  Cert<span className="text-orange-600">AI</span>nty Quantum
-</h1>
-          <p className="text-xl text-blue-200/80">
-            Quantum Computation and Information - Working offline
+      <div className="relative z-10 flex flex-col items-center justify-start px-6 h-screen">
+        {/* Title + Subtitle */}
+        <div className="text-center mt-32">
+          <h1 className="quantum-title text-7xl md:text-9xl font-bold mb-4">
+            Cert<span className="text-orange-600">AI</span>nty Quantum
+          </h1>
+          <p className="text-xl mt-16 text-blue-200/80">
+            Quantum enhanced portfolio optimisation tools – made easy with AI
           </p>
         </div>
 
-        {/* Cards with arrows above */}
-        <div className="flex justify-center gap-6 w-full max-w-5xl">
+        {/* Buttons around 75% down */}
+        <div className="text-xl mt-auto mb-[30vh] flex justify-center gap-40 w-full max-w-5xl">
           {[
             {
-              icon: <Bot className="h-10 w-10 text-blue-400" />,
-              text: "Quantum x DeFi AI Assistant",
+              icon: <Bot className="h-10 w-10 text-blue-400"/>,
+              text: "Quantum Informed AI Assistant",
               delay: "0s",
               link: "/assistant",
             },
             {
-              icon: <Wallet className="h-10 w-10 text-blue-400" />,
-              text: "Quantum x DeFi Portfolio Optimisation",
+              icon: <Wallet className="h-10 w-10 text-blue-400"/>,
+              text: "AI x Quantum Execution",
               delay: "0.5s",
               link: "/dashboard",
             },
             {
-              icon: <LineChart className="h-10 w-10 text-blue-400" />,
-              text: "Quantum x DeFi Analysis",
+              icon: <LineChart className="h-10 w-10 text-blue-400"/>,
+              text: "Quantum x Wormhole analysis",
               delay: "1s",
               link: "/analysis",
             },
-          ].map(({ icon, text, delay, link }, i) => (
-            <div key={i} className="flex flex-col items-center relative">
-              <div
-                className="arrow"
-                style={{
-                  top: "-40px",
-                  animationDelay: delay,
-                }}
-              />
-              <Link href={link}>
-                <Button
-                  className="quantum-card p-6 h-auto flex flex-col items-center justify-center gap-4 glow"
-                  variant="ghost"
-                >
-                  {icon}
-                  <span className="text-sm font-medium text-blue-100 leading-tight">{text}</span>
-                </Button>
-              </Link>
-            </div>
+          ].map(({icon, text, delay, link}, i) => (
+              <div key={i} className="flex flex-col items-center relative">
+                <div
+                    className="arrow"
+                    style={{
+                      top: "-40px",
+                      animationDelay: delay,
+                    }}
+                />
+                <Link href={link}>
+                  <Button
+                      className="quantum-card p-6 h-auto flex flex-col items-center justify-center gap-4 glow"
+                      variant="ghost"
+                  >
+                    {icon}
+                    <span className="text-sm font-medium text-blue-100 leading-tight">
+              {text}
+            </span>
+                  </Button>
+                </Link>
+              </div>
           ))}
         </div>
 
         {/* Scroll indicator */}
         <Link href="#quantum-solutions" scroll={false}>
-          <div className="scroll-indicator" onClick={() => {
-            document.getElementById('quantum-solutions')?.scrollIntoView({
-              behavior: 'smooth'
-            });
-          }}>
+          <div
+              className="scroll-indicator mb-8"
+              onClick={() => {
+                document.getElementById("quantum-solutions")?.scrollIntoView({
+                  behavior: "smooth",
+                });
+              }}
+          >
             <div className="scroll-arrow"></div>
             <div className="scroll-arrow"></div>
             <div className="scroll-text">Explore</div>
@@ -105,9 +111,10 @@ export default function Home() {
         </Link>
       </div>
 
+
       {/* Full-width three-column section */}
       <div className="w-full">
-        <ThreeColumnSection />
+        <ThreeColumnSection/>
       </div>
     </div>
   );
