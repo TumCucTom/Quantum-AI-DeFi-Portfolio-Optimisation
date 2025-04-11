@@ -66,7 +66,7 @@ const Chatbot: React.FC = () => {
                 style={{ marginBottom: '0.4rem', cursor: 'pointer' }}
                 onClick={() => handleConversationClick(idx)}
               >
-                🗂 {conv.title}
+                {conv.title}
               </li>
             ))}
           </ul>
