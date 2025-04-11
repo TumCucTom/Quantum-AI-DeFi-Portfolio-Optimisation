@@ -1,6 +1,7 @@
 import numpy as np
-from qiskit import QuantumCircuit, Aer, transpile
-from qiskit.algorithms import IterativeAmplitudeEstimation, EstimationProblem
+from qiskit import QuantumCircuit, Aer
+from qiskit.utils import algorithm_globals
+from qiskit.algorithms.amplitude_estimators import IterativeAmplitudeEstimation, EstimationProblem
 from qiskit.primitives import Sampler
 from qiskit.circuit.library import NormalDistribution
 
@@ -18,12 +19,13 @@ def quantum_rng(size: int) -> np.ndarray:
         qc.h(0)
         qc.measure(0, 0)
         result = backend.run(qc, shots=1).result()
-        bit = int(result.get_counts().most_frequent())
+        counts = result.get_counts()
+        bit = int(max(counts, key=counts.get))  # replaces deprecated .most_frequent()
         qrng.append(bit)
 
-    # Convert bits to normal (box-muller or simple mapping)
+    # Convert bits to normal (basic rescaling)
     uniform = np.array(qrng)
-    normal_approx = (uniform - 0.5) * 2  # basic rescaling [-1, 1]
+    normal_approx = (uniform - 0.5) * 2  # range [-1, 1]
     return normal_approx
 
 # === Base Model Interface ===
@@ -56,17 +58,14 @@ class EuropeanCallOption(PricingModel):
         circuit = QuantumCircuit(num_qubits)
         circuit.compose(normal, inplace=True)
 
-        # Define payoff as a thresholded function
-        def f(x):
-            price = self.S0 * np.exp((self.r - 0.5 * self.sigma**2) * self.T + self.sigma * np.sqrt(self.T) * x)
-            payoff = np.exp(-self.r * self.T) * max(price - self.K, 0)
-            return payoff
+        # Dummy post-processing function
+        def post_process(x):
+            return x  # Just placeholder
 
-        # Dummy estimation circuit
         return EstimationProblem(
             state_preparation=circuit,
             objective_qubits=[num_qubits - 1],
-            post_processing=lambda x: x
+            post_processing=post_process
         )
 
 # === QMCSimulator ===
@@ -91,6 +90,9 @@ class QMCSimulator:
 
 # === Usage Example ===
 if __name__ == "__main__":
+    # For reproducibility
+    algorithm_globals.random_seed = 42
+
     model = EuropeanCallOption(S0=100, K=100, T=1.0, r=0.05, sigma=0.2)
     simulator = QMCSimulator(model, num_samples=1000, use_qrng=True)
 
