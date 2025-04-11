@@ -1,1 +1,10 @@
 dwave-ocean-sdk
+qiskit
+numpy
+matplotlib
+ripser
+persim
+qiskit-machine-learning
+qiskit-algorithms
+dimod
+dwave-system

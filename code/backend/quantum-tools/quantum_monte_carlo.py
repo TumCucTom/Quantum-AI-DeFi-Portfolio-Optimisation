@@ -2,9 +2,7 @@ import numpy as np
 from qiskit import QuantumCircuit, Aer, transpile
 from qiskit.algorithms import IterativeAmplitudeEstimation, EstimationProblem
 from qiskit.primitives import Sampler
-from qiskit.utils import algorithm_globals
 from qiskit.circuit.library import NormalDistribution
-from typing import Optional
 
 # === Classical RNG ===
 def classical_rng(size: int) -> np.ndarray:

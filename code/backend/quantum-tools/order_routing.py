@@ -1,4 +1,3 @@
-import numpy as np
 from dwave.system import LeapHybridCQMSampler
 from dimod import ConstrainedQuadraticModel, Binary
 
