@@ -1,1 +1,5 @@
 dwave-ocean-sdk
+flask
+flask_cors
+dotenv
+requests
