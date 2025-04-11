@@ -1,13 +1,11 @@
 "use client";
 import React from 'react';
-import NavBar from './NavBar';
 import SectionNav from './sectionBar';
 // import TransferTable from '@/components/TransferTable'; // 위치에 맞게 수정
 
 const FullGraphs: React.FC = () => {
   return (
     <>
-      <NavBar />
       <SectionNav />
 
       <div style={styles.container}>
