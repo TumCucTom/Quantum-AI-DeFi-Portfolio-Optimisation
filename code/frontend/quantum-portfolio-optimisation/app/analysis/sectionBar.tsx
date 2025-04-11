@@ -20,10 +20,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '1rem',
     padding: '0.75rem 0',
     position: 'sticky',
-    top: 0,
+    top: '60px', // Adjusted to account for the main navbar
     backgroundColor: 'rgba(15, 23, 42, 0.5)',
     backdropFilter: 'blur(8px)',
-    zIndex: 1000,
+    zIndex: 900, // Slightly lower than main navbar
   },
   pill: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',

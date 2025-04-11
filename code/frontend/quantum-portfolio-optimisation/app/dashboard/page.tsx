@@ -65,10 +65,10 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#000510] to-[#002240] text-white">
-      {/* Header with widget menu toggle and settings button */}
-      <header className="p-4 flex justify-between items-center border-b border-blue-400/20">
-        <h1 className="quantum-title text-2xl">Quantum Dashboard</h1>
+    <div className="min-h-[calc(100vh-60px)] bg-gradient-to-b from-[#000510] to-[#002240] text-white">
+      {/* Dashboard controls */}
+      <div className="p-4 flex justify-between items-center border-b border-blue-400/20">
+        <h2 className="text-xl font-medium">Dashboard Controls</h2>
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setShowSettings(true)}
@@ -90,9 +90,9 @@ export default function Dashboard() {
             </svg>
           </button>
         </div>
-      </header>
+      </div>
 
-      <div className="flex h-[calc(100vh-64px)]">
+      <div className="flex h-[calc(100vh-124px)]">
         {/* Main dashboard area */}
         <main className="flex-grow p-6 overflow-auto">
           {/* Connected wallet info */}

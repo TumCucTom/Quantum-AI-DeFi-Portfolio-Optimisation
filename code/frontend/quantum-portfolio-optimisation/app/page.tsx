@@ -38,10 +38,10 @@ export default function Home() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500/20 rounded-full blur-[100px] animate-pulse delay-2000" />
       </div>
 
-      <div className="relative z-10 flex flex-col items-center justify-start px-6 h-screen">
+      <div className="relative z-10 flex flex-col items-center justify-start px-6 h-[calc(100vh-60px)]">
         {/* Title + Subtitle */}
-        <div className="text-center mt-36">
-          <h1 className="quantum-title text-6xl md:text-9xl font-bold mb-4">
+        <div className="text-center mt-16">
+          <h1 className="quantum-title text-7xl md:text-9xl font-bold mb-4">
             Cert<span className="text-orange-600">AI</span>nty Quantum
           </h1>
           <p className="text-l mt-16 text-blue-200/80">

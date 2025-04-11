@@ -1,10 +1,12 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-
+"""""
 from demo-tools.demo import twap_slicing
 from demo-tools.demo import vwap_slicing
 from demo-tools.demo import quantum_order_routing
 from demo-tools.demo import quantum_latency_costs
+"""
+from AIs.groq.groq_client import query_groq, quantum_prompt
 
 
 app = Flask(__name__)
@@ -51,6 +53,17 @@ def classical_vwap():
     profile = data.get("volume_profile", [10, 20, 30, 25, 15])  # example market volume pattern
     result = vwap_slicing(volume, profile)
     return jsonify({"slices": result})
+
+@app.route("/quantum/groq", methods=["POST"])
+def quantum_groq_endpoint():
+    data = request.json
+    user_prompt = data.get("prompt", "")
+    full_prompt = quantum_prompt(user_prompt)
+    try:
+        response = query_groq(full_prompt)
+        return jsonify({"response": response})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
