@@ -15,10 +15,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from ripser import ripser
 from persim import plot_diagrams
+import seaborn as sns
+from sklearn.metrics.pairwise import rbf_kernel
 
+
+from qiskit.primitives import Sampler
+from qiskit_algorithms.state_fidelities import ComputeUncompute
 from qiskit_machine_learning.kernels import FidelityQuantumKernel
 from qiskit.circuit.library import ZZFeatureMap
-from qiskit_algorithms.state_fidelities import ComputeUncompute
 
 
 # -----------------------------------------------------------------------------
@@ -40,8 +44,8 @@ def generate_synthetic_financial_data(num_samples: int = 150, num_features: int 
     samples_per_cluster = num_samples // 3
     data = []
     for _ in range(3):
-        cluster_center = np.random.rand(num_features) * 100
-        cluster_data = cluster_center + np.random.randn(samples_per_cluster, num_features) * 5
+        cluster_center = np.random.rand(num_features) * 300
+        cluster_data = cluster_center + np.random.randn(samples_per_cluster, num_features) * 2
         data.append(cluster_data)
     return np.vstack(data)
 
@@ -51,10 +55,11 @@ def generate_synthetic_financial_data(num_samples: int = 150, num_features: int 
 def compute_quantum_kernel_matrix(data: np.ndarray) -> np.ndarray:
     """
     Uses Qiskit's FidelityQuantumKernel with a ZZFeatureMap and ComputeUncompute fidelity
-    to compute the quantum kernel matrix.
+    (with a Sampler backend) to compute the quantum kernel matrix.
     """
-    feature_map = ZZFeatureMap(feature_dimension=data.shape[1], reps=2, entanglement='linear')
-    fidelity = ComputeUncompute()
+    feature_map = ZZFeatureMap(feature_dimension=data.shape[1], reps=4, entanglement='full')
+    sampler = Sampler()
+    fidelity = ComputeUncompute(sampler=sampler)
     quantum_kernel = FidelityQuantumKernel(feature_map=feature_map, fidelity=fidelity)
 
     kernel_matrix = quantum_kernel.evaluate(x_vec=data)
@@ -99,7 +104,7 @@ def compute_persistence(distance_matrix: np.ndarray):
 # Main Pipeline Execution
 # -----------------------------------------------------------------------------
 def main():
-    data = generate_synthetic_financial_data(num_samples=150, num_features=10)
+    data = generate_synthetic_financial_data(num_samples=150, num_features=4)
     print("Data shape:", data.shape)
 
     kernel_matrix = compute_quantum_kernel_matrix(data)
@@ -111,6 +116,15 @@ def main():
     plot_diagrams(diagrams, show=True)
     plt.title("Persistence Diagrams from Quantum TDA")
     plt.show()
+
+    sns.heatmap(kernel_matrix, cmap="viridis")
+    plt.title("Quantum Kernel Matrix")
+    plt.show()
+
+    kernel_matrix = rbf_kernel(data, gamma=0.001)
+    distance_matrix = kernel_to_distance(kernel_matrix)
+    diagrams = compute_persistence(distance_matrix)
+    plot_diagrams(diagrams, show=True)
 
 if __name__ == "__main__":
     main()
