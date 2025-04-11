@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Bot, LineChart, Wallet } from "lucide-react";
+import { Bot, LineChart, Wallet, LayoutDashboard } from "lucide-react";
 import { useEffect } from "react";
 import Link from "next/link";
 import { ThreeColumnSection } from "@/components/ui/three-column-section";
@@ -61,7 +61,7 @@ export default function Home() {
               icon: <Wallet className="h-10 w-10 text-blue-400" />,
               text: "Quantum x DeFi Portfolio Optimisation",
               delay: "0.5s",
-              link: "/execute",
+              link: "/dashboard",
             },
             {
               icon: <LineChart className="h-10 w-10 text-blue-400" />,
