@@ -272,3 +272,9 @@
 .section-border-glow:hover::before {
   opacity: 1;
 }
+.scroll-target {
+  scroll-margin-top: 80px;
+}
+html {
+  scroll-behavior: smooth;
+}
