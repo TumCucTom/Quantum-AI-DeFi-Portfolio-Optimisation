@@ -21,7 +21,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '0.75rem 0',
     position: 'sticky',
     top: 0,
-    backgroundColor: 'rgba(15, 23, 42, 0.5)', // 어두운 반투명
+    backgroundColor: 'rgba(15, 23, 42, 0.5)',
     backdropFilter: 'blur(8px)',
     zIndex: 1000,
   },
