@@ -16,10 +16,10 @@ import matplotlib.pyplot as plt
 from ripser import ripser
 from persim import plot_diagrams
 
-# Qiskit imports for quantum kernel construction.
-from qiskit_machine_learning.kernels import QuantumKernel
+from qiskit_machine_learning.kernels import FidelityQuantumKernel
 from qiskit.circuit.library import ZZFeatureMap
-from qiskit import BasicAer
+from qiskit_algorithms.state_fidelities import ComputeUncompute
+
 
 # -----------------------------------------------------------------------------
 # Synthetic Data Generation
@@ -28,11 +28,11 @@ def generate_synthetic_financial_data(num_samples: int = 150, num_features: int 
     """
     Simulates high-dimensional financial data that might reflect asset returns or market regimes.
     For demonstration, we create a mixture of three Gaussian clusters.
-    
+
     Args:
         num_samples: Total number of data points.
         num_features: Dimensionality of each data point.
-    
+
     Returns:
         A numpy array of shape (num_samples, num_features)
     """
@@ -40,9 +40,7 @@ def generate_synthetic_financial_data(num_samples: int = 150, num_features: int 
     samples_per_cluster = num_samples // 3
     data = []
     for _ in range(3):
-        # Random cluster center in the feature space.
         cluster_center = np.random.rand(num_features) * 100
-        # Generate points around the cluster center.
         cluster_data = cluster_center + np.random.randn(samples_per_cluster, num_features) * 5
         data.append(cluster_data)
     return np.vstack(data)
@@ -52,46 +50,32 @@ def generate_synthetic_financial_data(num_samples: int = 150, num_features: int 
 # -----------------------------------------------------------------------------
 def compute_quantum_kernel_matrix(data: np.ndarray) -> np.ndarray:
     """
-    Uses Qiskit's QuantumKernel with a ZZFeatureMap to compute the kernel (similarity)
-    matrix between data points. In the quantum feature space, the kernel captures the inner
-    products between the quantum states encoding the classical data.
-    
-    Args:
-        data: The input data as a numpy array of shape (num_samples, num_features)
-    
-    Returns:
-        Kernel matrix as a numpy array with shape (num_samples, num_samples)
+    Uses Qiskit's FidelityQuantumKernel with a ZZFeatureMap and ComputeUncompute fidelity
+    to compute the quantum kernel matrix.
     """
-    # Define a feature map to encode data into a quantum state.
     feature_map = ZZFeatureMap(feature_dimension=data.shape[1], reps=2, entanglement='linear')
-    quantum_instance = BasicAer.get_backend('statevector_simulator')
-    quantum_kernel = QuantumKernel(feature_map=feature_map, quantum_instance=quantum_instance)
+    fidelity = ComputeUncompute()
+    quantum_kernel = FidelityQuantumKernel(feature_map=feature_map, fidelity=fidelity)
 
-    # Evaluate the kernel matrix for all data points.
     kernel_matrix = quantum_kernel.evaluate(x_vec=data)
     return kernel_matrix
+
 
 # -----------------------------------------------------------------------------
 # Convert Kernel Matrix to Distance Matrix
 # -----------------------------------------------------------------------------
 def kernel_to_distance(kernel_matrix: np.ndarray) -> np.ndarray:
     """
-    Converts a kernel (similarity) matrix to a distance matrix.
-    A common choice is:
-    
-         d(x, y) = sqrt( k(x,x) + k(y,y) - 2 * k(x,y) )
-    
-    This transformation ensures that a high similarity (large kernel value)
-    corresponds to a smaller distance.
-    
+    Converts a kernel (similarity) matrix to a distance matrix using:
+        d(x, y) = sqrt( k(x,x) + k(y,y) - 2 * k(x,y) )
+
     Args:
         kernel_matrix: A symmetric matrix of kernel values.
-        
+
     Returns:
         Distance matrix of the same shape.
     """
     diag = np.diag(kernel_matrix)
-    # Broadcasting to compute pairwise distances.
     distance_matrix = np.sqrt(np.abs(diag[:, None] + diag[None, :] - 2 * kernel_matrix))
     return distance_matrix
 
@@ -100,13 +84,11 @@ def kernel_to_distance(kernel_matrix: np.ndarray) -> np.ndarray:
 # -----------------------------------------------------------------------------
 def compute_persistence(distance_matrix: np.ndarray):
     """
-    Computes the persistent homology of a dataset given a pairwise distance matrix using ripser.
-    The resulting persistence diagrams capture the birth and death of topological features (e.g.,
-    connected components, loops).
-    
+    Computes persistent homology using ripser from a pairwise distance matrix.
+
     Args:
         distance_matrix: A numpy array representing the pairwise distances.
-    
+
     Returns:
         A list of persistence diagrams.
     """
@@ -117,21 +99,15 @@ def compute_persistence(distance_matrix: np.ndarray):
 # Main Pipeline Execution
 # -----------------------------------------------------------------------------
 def main():
-    # Step 1: Generate or load high-dimensional financial data.
     data = generate_synthetic_financial_data(num_samples=150, num_features=10)
     print("Data shape:", data.shape)
 
-    # Step 2: Compute the quantum kernel matrix using Qiskit.
     kernel_matrix = compute_quantum_kernel_matrix(data)
     print("Kernel matrix shape:", kernel_matrix.shape)
 
-    # Step 3: Transform the kernel matrix to a distance matrix.
     distance_matrix = kernel_to_distance(kernel_matrix)
-
-    # Step 4: Compute persistent homology (topological features) of the data.
     diagrams = compute_persistence(distance_matrix)
 
-    # Step 5: Visualize the persistence diagrams.
     plot_diagrams(diagrams, show=True)
     plt.title("Persistence Diagrams from Quantum TDA")
     plt.show()
