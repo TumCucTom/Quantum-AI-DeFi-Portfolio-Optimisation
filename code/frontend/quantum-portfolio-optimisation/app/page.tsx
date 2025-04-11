@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Bot, LineChart, Wallet } from "lucide-react";
 import { useEffect } from "react";
 import Link from "next/link";
+import { ThreeColumnSection } from "@/components/ui/three-column-section";
 
 export default function Home() {
   useEffect(() => {
@@ -26,7 +27,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden flex flex-col">
       <div id="particleContainer" className="absolute inset-0 pointer-events-none" />
       <div className="quantum-grid absolute inset-0 opacity-30" />
 
@@ -87,6 +88,24 @@ export default function Home() {
             </div>
           ))}
         </div>
+        
+        {/* Scroll indicator */}
+        <Link href="#quantum-solutions" scroll={false}>
+          <div className="scroll-indicator" onClick={() => {
+            document.getElementById('quantum-solutions')?.scrollIntoView({
+              behavior: 'smooth'
+            });
+          }}>
+            <div className="scroll-arrow"></div>
+            <div className="scroll-arrow"></div>
+            <div className="scroll-text">Explore</div>
+          </div>
+        </Link>
+      </div>
+      
+      {/* Full-width three-column section */}
+      <div className="w-full">
+        <ThreeColumnSection />
       </div>
     </div>
   );
