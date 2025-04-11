@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import '../globals.css';
 
 interface Message {
   sender: 'user' | 'AI Assistant';
@@ -54,8 +55,9 @@ const Chatbot: React.FC = () => {
   };
 
   return (
-    <div style={styles.wrapper}>
-      <div style={styles.sidebar}>
+    <div className="flex flex-col md:flex-row w-full h-[95vh] p-3 gap-3">
+      {/* Sidebar */}
+      <div className="w-full md:w-52 bg-white/5 text-white rounded-2xl p-3 shadow-md backdrop-blur-md">
         <button onClick={handleNewChat} style={styles.newChatButton}>+ New Chat</button>
         <div style={styles.history}>
           <h4 style={{ color: '#94a3b8', marginBottom: '0.5rem' }}>History</h4>
@@ -73,11 +75,13 @@ const Chatbot: React.FC = () => {
         </div>
       </div>
 
-      <div style={styles.chatContainer}>
+      {/* Chat area */}
+      <div className="flex flex-col flex-1 bg-white/5 text-white rounded-2xl p-3 shadow-xl backdrop-blur-md">
         <div style={styles.messages}>
           {messages.map((msg, i) => (
             <div
               key={i}
+              className="chat-message"
               style={{
                 ...styles.message,
                 alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
@@ -112,86 +116,52 @@ const Chatbot: React.FC = () => {
 export default Chatbot;
 
 const styles: { [key: string]: React.CSSProperties } = {
-  wrapper: {
-    display: 'flex',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
-    padding: '3rem',
-    gap: '2rem',
-    height: '100vh',
-    boxSizing: 'border-box',
-  },
-  chatContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderRadius: '16px',
-    padding: '1.5rem',
-    width: '1000px',
-    height: '100%',
-    boxShadow: '0 0 20px rgba(0,0,0,0.4)',
-    backdropFilter: 'blur(8px)',
-    color: '#f1f5f9',
-  },
   messages: {
     flex: 1,
     overflowY: 'auto',
     display: 'flex',
     flexDirection: 'column',
-    gap: '1rem',
-    paddingBottom: '1rem',
+    gap: '0.75rem',
+    paddingBottom: '0.75rem',
   },
   message: {
-    maxWidth: '80%',
-    padding: '1rem',
-    borderRadius: '12px',
+    maxWidth: '75%',
+    padding: '0.9rem',
+    borderRadius: '10px',
     lineHeight: '1.4',
-    fontSize: '0.95rem',
+    fontSize: '0.9rem',
   },
   inputContainer: {
     display: 'flex',
-    gap: '0.5rem',
+    gap: '0.4rem',
   },
   input: {
     flex: 1,
-    padding: '0.8rem 1rem',
-    borderRadius: '12px',
+    padding: '0.7rem 0.9rem',
+    borderRadius: '10px',
     border: 'none',
     backgroundColor: 'rgba(255,255,255,0.08)',
     color: 'white',
-    fontSize: '0.95rem',
+    fontSize: '0.9rem',
     outline: 'none',
   },
   button: {
     backgroundColor: '#6366f1',
     border: 'none',
-    borderRadius: '12px',
-    padding: '0.8rem 1.2rem',
+    borderRadius: '10px',
+    padding: '0.7rem 1rem',
     color: 'white',
     cursor: 'pointer',
     fontWeight: 500,
   },
-  sidebar: {
-    width: '180px',
-    marginLeft: '0',
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderRadius: '16px',
-    padding: '1.5rem',
-    boxShadow: '0 0 15px rgba(0,0,0,0.3)',
-    backdropFilter: 'blur(6px)',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    color: '#f1f5f9',
-  },
   newChatButton: {
-    padding: '0.6rem 1rem',
+    padding: '0.5rem 0.9rem',
     borderRadius: '999px',
     border: 'none',
     backgroundColor: '#3b82f6',
     color: 'white',
     fontWeight: 500,
-    marginBottom: '1rem',
+    marginBottom: '0.8rem',
     cursor: 'pointer',
   },
   history: {

@@ -37,12 +37,18 @@ const FullGraphs: React.FC = () => {
 export default FullGraphs;
 
 const styles: { [key: string]: React.CSSProperties } = {
-  container: {
+  wrapper: {
     display: 'flex',
-    flexDirection: 'column',
-    padding: '2rem',
-    gap: '3rem',
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    padding: '3rem',
+    gap: '2rem',
+    height: '100vh',
+    boxSizing: 'border-box',
+    flexWrap: 'wrap',
   },
+
   heading: {
     fontSize: '1.8rem',
     fontWeight: 700,
