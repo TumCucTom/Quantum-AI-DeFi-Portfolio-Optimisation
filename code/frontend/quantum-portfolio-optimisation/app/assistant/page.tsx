@@ -19,6 +19,10 @@ const FullChatbot: React.FC = () => {
   const [input, setInput] = useState('');
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentId, setCurrentId] = useState<number>(1);
+  const apiKey = process.env.NEXT_PUBLIC_GROQ_API_KEY;
+  const [userApiKey, setUserApiKey] = useState('');
+  const [keyInput, setKeyInput] = useState('');
+
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -27,22 +31,36 @@ const FullChatbot: React.FC = () => {
     setMessages((prev) => [...prev, userMessage]);
 
     try {
-      const res = await fetch('http://localhost:3002/quantum/groq', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: input }),
+      const res = await fetch("/api/groq", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: input,
+          userApiKey, // send user's key to backend
+        }),
       });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch (err) {
+        const text = await res.text(); // fallback
+        console.error("Non-JSON response:", text);
+        throw new Error("Server returned non-JSON response.");
+      }
+      
+      if (!res.ok) {
+        throw new Error(data.error || "API call failed");
+      }
       const aiMessage: Message = {
         sender: 'AI Assistant',
-        text: data.response || 'Something went wrong!',
+        text: data?.choices?.[0]?.message?.content || 'Something went wrong!',
       };
 
       // If no existing conversation, create a new one
       if (messages.length === 0) {
         const newTitle =
-          input.length > 40 ? input.slice(0, 40) + '...' : input;
+            input.length > 40 ? input.slice(0, 40) + '...' : input;
 
         const newConversation: Conversation = {
           title: newTitle,
@@ -50,7 +68,7 @@ const FullChatbot: React.FC = () => {
         };
         setConversations([newConversation, ...conversations]);
       } else {
-        // Otherwise, add to the first conversation for now
+        // Otherwise, add to the first conversation
         const updated = [...conversations];
         if (updated[0]) {
           updated[0].messages = [...messages, userMessage, aiMessage];
@@ -61,10 +79,10 @@ const FullChatbot: React.FC = () => {
       setMessages((prev) => [...prev, aiMessage]);
       setInput('');
     } catch (error) {
-      console.error('Error contacting backend:', error);
+      console.error('Error contacting Groq API:', error);
       const errorMsg: Message = {
         sender: 'AI Assistant',
-        text: 'Failed to get response from the server.',
+        text: 'Failed to get response from Groq API.',
       };
       setMessages((prev) => [...prev, errorMsg]);
     }
@@ -78,6 +96,30 @@ const FullChatbot: React.FC = () => {
     setMessages(conversations[index].messages);
   };
 
+  if (!userApiKey) {
+    return (
+        <div className="flex items-center justify-center h-screen bg-[#0f172a] text-white">
+          <div className="bg-white/10 p-8 rounded-xl shadow-lg text-center max-w-md w-full">
+            <h2 className="text-2xl font-bold mb-4">Enter your Groq API Key</h2>
+            <input
+                type="password"
+                placeholder="sk-..."
+                value={keyInput}
+                onChange={(e) => setKeyInput(e.target.value)}
+                className="w-full p-2 mb-4 text-black rounded"
+            />
+            <button
+                onClick={() => setUserApiKey(keyInput)}
+                className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded"
+            >
+              Save & Start Chatting
+            </button>
+          </div>
+        </div>
+    );
+  }
+
+  // @ts-ignore
   return (
     <div className="flex flex-col md:flex-row w-full h-[95vh] p-3 gap-3">
       {/* Sidebar */}
@@ -182,6 +224,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   input: {
     flex: 1,
     padding: '0.5rem',
+    color: '#000'
   },
   sendButton: {
     padding: '0.5rem 1rem',
