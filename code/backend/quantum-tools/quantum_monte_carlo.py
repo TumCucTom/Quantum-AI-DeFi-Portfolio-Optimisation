@@ -141,9 +141,6 @@ class EuropeanCallOption(PricingModel):
         plt.ylabel("Probability")
         plt.show()
 
-        # Add measurement instructions for all qubits.
-        circuit.measure(range(total_qubits), range(total_qubits))
-
         # Define a post-processing function that converts the amplitude estimation
         # back into an expected payoff.
         # Here, we multiply by (1/scale) to invert our normalization.
@@ -178,6 +175,7 @@ class QMCSimulator:
         # Optionally visualize the quasi distribution of the full QAE circuit.
         if visualize:
             qae_circuit = problem.state_preparation.copy()
+            qae_circuit.add_register(ClassicalRegister(qae_circuit.num_qubits))
             qae_circuit.measure(range(qae_circuit.num_qubits), range(qae_circuit.num_qubits))
             qae_result = sampler.run([qae_circuit]).result().quasi_dists[0]
 
