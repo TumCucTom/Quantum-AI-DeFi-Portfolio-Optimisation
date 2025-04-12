@@ -4,7 +4,7 @@
 
 - We enhance [**Starkware's Brian AI**](tbc) (|Brian⟩) with our quantum pre execution scripts.
 - Empower users with quantum financial tools powered by [**Wormhole API**](/code/frontend/quantum-portfolio-optimisation/app/analysis/page.tsx)
-- Provide a quantum informed AI assistant to demystify the quantum x (De)Fi world
+- Provide a **quantum informed XAI** assistant to demystify the quantum x (De)Fi world in an explainable manner
 - Solana?
 
 ## Reasoning
