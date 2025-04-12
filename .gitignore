@@ -3,4 +3,5 @@
 q-ai-env
 .env
 node_modules
-PACKAGE.json
+package.json
+package-lock.json
