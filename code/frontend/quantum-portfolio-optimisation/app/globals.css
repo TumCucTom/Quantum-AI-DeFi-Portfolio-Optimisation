@@ -85,27 +85,43 @@
   }
 }
 
+/* 기존 glow 클래스 수정 (빛 효과 제거) */
 .glow {
-  box-shadow: 0 0 30px rgba(0, 150, 255, 0.3);
-  transition: all 0.3s ease;
+  box-shadow: none; /* Glow 제거 */
+  transition: all 0.2s ease;
+  border: 1px solid rgba(99, 179, 237, 0.2); /* 버튼 느낌 강화 */
+  background-color: rgba(13, 23, 64, 0.9);
+  border-radius: 0.75rem; /* 12px */
+  padding: 1rem 1.5rem; /* 내부 여백 */
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
 }
 
 .glow:hover {
-  box-shadow: 0 0 50px rgba(0, 150, 255, 0.5);
+  background-color: rgba(20, 30, 80, 1); /* 호버 시 살짝 밝게 */
   transform: translateY(-2px);
+  border-color: rgba(99, 179, 237, 0.4); /* 테두리 강조 */
 }
 
+/* quantum-card 클래스도 버튼처럼 보이게 조정 */
 .quantum-card {
-  background: rgba(13, 23, 64, 0.7);
+  background: rgba(13, 23, 64, 0.9);
   border: 1px solid rgba(99, 179, 237, 0.2);
-  backdrop-filter: blur(10px);
+  backdrop-filter: none; /* blur 제거 */
+  border-radius: 0.75rem;
+  padding: 1rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .quantum-card:hover {
   border-color: rgba(99, 179, 237, 0.4);
-  background: rgba(13, 23, 64, 0.8);
+  background: rgba(20, 30, 80, 1);
+  transform: translateY(-2px);
 }
+
 
 .particle {
   position: absolute;
@@ -152,7 +168,7 @@
 
 /* Arrows */
 
-.arrow {
+/* .arrow {
   position: absolute;
   width: 100px;
   height: 2px;
@@ -160,9 +176,9 @@
   transform: rotate(90deg);
   transform-origin: center;
   animation: arrowPulse 2s infinite;
-}
+} */
 
-.arrow::after {
+/* .arrow::after {
   content: '';
   position: absolute;
   right: -2px;
@@ -172,9 +188,9 @@
   border-top: 2px solid rgba(99, 179, 237, 0.8);
   border-right: 2px solid rgba(99, 179, 237, 0.8);
   transform: rotate(45deg);
-}
+} */
 
-@keyframes arrowPulse {
+/* @keyframes arrowPulse {
   0%, 100% {
     opacity: 0.2;
     scale: 0.95;
@@ -183,7 +199,7 @@
     opacity: 0.8;
     scale: 1.05;
   }
-}
+} */
 
 /* Scroll indicator */
 .scroll-indicator {
@@ -302,5 +318,35 @@ html {
 
   .chat-message {
     max-width: 100% !important;
+  }
+}
+
+@media (max-width: 768px) {
+  h1, h2, h3 {
+    font-size: 1.25rem !important; /* 예: text-xl */
+    line-height: 1.6rem;
+  }
+
+  .mobile-shrink-text {
+    font-size: 0.875rem !important; /* 예: text-sm */
+  }
+
+  .mobile-shrink-padding {
+    padding: 0.75rem 1rem !important;
+  }
+
+  .mobile-shrink-margin {
+    margin: 0.5rem 0 !important;
+  }
+
+  .nav-tab {
+    font-size: 0.875rem !important;
+    padding: 0.25rem 0.75rem !important;
+    border-radius: 9999px; /* pill shape 유지 */
+  }
+
+  .simulation-card {
+    padding: 1rem !important;
+    font-size: 0.875rem;
   }
 }
