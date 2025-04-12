@@ -13,6 +13,20 @@ Quantum computing, through RNG and speed in algorithmic advantage is starting to
 
 No only does CertAInty Quantum provide **a suite of quantum enchanced tools for portfolio optmisation**, it **leverages AI to enhance the execution** but more importantly, **our AI explains the implementation and use** behind these new tools.
 
+## Main Features
+
+### Quantum Enhanced Execution AI - |Brian⟩
+
+### Quantum Enhanced Analysis Tools
+
+#### Quantum TDA
+
+#### Quantum Monte Carlo
+
+#### Wormhole Live Data
+
+### XAI / AI Assistant
+
 ## License
 
 Please see the [license](LICENSE)
