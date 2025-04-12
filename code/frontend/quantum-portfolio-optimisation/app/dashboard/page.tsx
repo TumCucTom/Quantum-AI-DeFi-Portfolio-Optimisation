@@ -169,7 +169,7 @@ export default function Dashboard() {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
             <div className="relative bg-blue-900/50 border border-blue-400/30 rounded p-6 text-white aspect-square min-h-[300px]">
               <p className="font-semibold text-lg mb-4 flex justify-between items-center">
                 Control
@@ -211,24 +211,71 @@ export default function Dashboard() {
               </div>
 
               {showInfoPopup && (
-                <div
-                  ref={infoPopupRef}
-                  className="absolute top-14 right-4 w-80 z-10 p-4 bg-blue-950 border border-blue-400/30 rounded text-sm text-blue-100 shadow-lg"
-                >
-                  <p className="mb-2 font-semibold text-blue-200">Feature Descriptions:</p>
-                  <ul className="list-disc list-inside space-y-1">
-                    <li><strong>TWAP</strong>: Time-Weighted Average Price slicing.</li>
-                    <li><strong>VWAP</strong>: Volume-Weighted Average Price slicing.</li>
-                    <li><strong>QOS</strong>: Quantum-based order segmentation logic.</li>
-                    <li><strong>QOR</strong>: Quantum-enhanced route optimization.</li>
-                    <li><strong>QLCA</strong>: Delayed cost impact awareness via quantum modeling.</li>
-                  </ul>
-                </div>
+                  <div
+                      ref={infoPopupRef}
+                      className="fixed top-1/2 left-1/2 w-[70rem] z-50 p-16 bg-blue-950 border border-blue-400/30 rounded text-base text-blue-100 shadow-2xl transform -translate-x-1/2 -translate-y-1/2"
+                  >
+                    {/* Close X */}
+                    <button
+                        onClick={() => setShowInfoPopup(false)}
+                        className="absolute top-3 left-4 text-red-400 hover:text-red-300 text-4xl font-bold"
+                        aria-label="Close"
+                    >
+                      ✕
+                    </button>
+                    <ul className="text-xl list-disc list-inside space-y-5">
+                      <li>
+                        <strong>TWAP</strong>: Classical time-weighted average price slicing. Useful for spreading <em>large orders</em> where market impact or <em>front
+                        running</em> is a concern. Splits orders <em>evenly over a time window</em>.{" "}
+                          <a href="/code" className="text-blue-400 hover:underline">Learn more with our AI </a>
+                          or see our
+                          <a href="/code" className="text-blue-400 hover:underline"> the code snippet</a>.
+                      </li>
+                      <li>
+                        <strong>VWAP</strong>: Volume-Weighted Average Price slicing. Useful for spreading <em>large
+                        orders</em> where market impact or <em>front running</em> is a concern. Splits orders in portions
+                        based on <em>historical or real-time</em> rading volumes (with liquidity).{" "}
+                        <a href="/code" className="text-blue-400 hover:underline">Learn more with our AI </a>
+                        or see our
+                        <a href="/code" className="text-blue-400 hover:underline"> the code snippet</a>.
+                      </li>
+                      <li>
+                        <strong>QOS</strong>: Quantum-based order slicing. Taking the slicing as an <em>optimisation
+                        problem</em>, we can minimise the execution cost and add further constraints from the above. <em>Especially
+                        useful in illiquid markets</em> or when you want to add risk limits. We solve using a annealing and hybrid solvers for the QUBO.{" "}
+                          <a href="/code" className="text-blue-400 hover:underline">Learn more with our AI </a>
+                          or see our
+                          <a href="/code" className="text-blue-400 hover:underline"> code snippets</a>.
+                      </li>
+                      <li>
+                        <strong>QOR</strong>: Quantum-enhanced route optimisation. Different venue provide offer different liquidity pools, different fees, speeds and personal data risk. Taking this as a <em>combinatorial problem</em> we can <em>minimise slippage and cost</em> with constraints for venue caps, fees and time. We solve using a annealing and hybrid solvers for the QUBO.{" "}
+                        <a href="/code" className="text-blue-400 hover:underline">Learn more with our AI </a>
+                        or see our
+                        <a href="/code" className="text-blue-400 hover:underline"> code snippets</a>.
+                      </li>
+                      <li>
+                        <strong>QLCA</strong>: Quantum enhanced delayed cost impact awareness. HFTs can detect and front-run profitable trades, and so with time being imperative we can utilise quantum speed up on a model of spread, fees, slippage to form a minimisation formula. This high solution space if perfect for quantum algorithms tackling the multi-variable QUBOs created.{" "}
+                        <a href="/code" className="text-blue-400 hover:underline">Learn more with our AI </a>
+                        or see our
+                        <a href="/code" className="text-blue-400 hover:underline"> code snippets</a>.
+                      </li>
+                    </ul>
+                    {/* Done Button */}
+                    <div className="mt-8 flex justify-center">
+                      <button
+                          onClick={() => setShowInfoPopup(false)}
+                          className="px-6 py-2 bg-blue-700 hover:bg-blue-600 text-white font-medium rounded"
+                      >
+                        Done
+                      </button>
+                    </div>
+                  </div>
               )}
             </div>
 
             {panels.map((panel) => (
-              <div key={panel.id} className="bg-white/5 border border-blue-400/20 rounded p-6 text-white aspect-square min-h-[300px]">
+                <div key={panel.id}
+                     className="bg-white/5 border border-blue-400/20 rounded p-6 text-white aspect-square min-h-[300px]">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-base font-semibold">{panel.id}</span>
                   <button
@@ -244,7 +291,7 @@ export default function Dashboard() {
           </div>
         </main>
 
-        <div className="w-full lg:w-80 border-t lg:border-t-0 lg:border-l border-blue-400/20 flex flex-col">
+        <div className="w-full lg:w-[45rem] border-t lg:border-t-0 lg:border-l border-blue-400/20 flex flex-col">
           <AIChat />
         </div>
       </div>
