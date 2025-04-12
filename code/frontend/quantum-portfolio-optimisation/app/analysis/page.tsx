@@ -14,12 +14,23 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
-
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
+import axios from 'axios';
+
+interface TokenInfo {
+  name: string;
+  symbol: string;
+  decimals: string;
+  totalSupply: string;
+}
+
+type TokenMap = Record<string, TokenInfo>;
 
 const FullGraphs: React.FC = () => {
   // Responsive layout state
   const [isMobile, setIsMobile] = useState(false);
+  const [tokens, setTokens] = useState<TokenMap>({});
+  const [error, setError] = useState<string | null>(null);
 
   // Monte Carlo Simulation state
   const [useQuantumRNG, setUseQuantumRNG] = useState(false);
@@ -43,10 +54,30 @@ const FullGraphs: React.FC = () => {
       setIsMobile(window.innerWidth <= 768);
     };
     handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
+    const fetchTokens = async () => {
+      try {
+        const res = await axios.get('http://127.0.0.1:8000/tokens/supply');
+        setTokens(res.data);
+        setError(null);
+      } catch (err) {
+        setError('⚠️ 데이터를 불러오는 중 오류가 발생했습니다.');
+        setTokens({});
+        console.error('❌ API 오류:', err);
+      }
+    };
+
+    fetchTokens();
+    const interval = setInterval(fetchTokens, 5000);
+    window.addEventListener("resize", handleResize);
+    handleResize();
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+  
   // Common responsive margins
   const getResponsiveMargins = (): React.CSSProperties =>
       isMobile ? { margin: '0 1rem' } : {};
@@ -253,7 +284,6 @@ const FullGraphs: React.FC = () => {
   return (
       <>
         <SectionNav />
-
         <div style={styles.container}>
           {/* Monte Carlo Simulation Section */}
           <h2 id="montecarlo" className="scroll-target" style={{ ...styles.heading, ...getResponsiveMargins() }}>
