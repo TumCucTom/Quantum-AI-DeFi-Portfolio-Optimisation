@@ -2,11 +2,23 @@
 
 import { Button } from "@/components/ui/button";
 import { Bot, LineChart, Wallet } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ThreeColumnSection } from "@/components/ui/three-column-section";
 
 export default function Home() {
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 1024); // Tailwind 기준 md: 768, lg: 1024
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   useEffect(() => {
     const createParticle = () => {
       const particle = document.createElement("div");
@@ -28,6 +40,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative overflow-hidden flex flex-col">
+      {/* Particle background */}
       <div id="particleContainer" className="absolute inset-0 pointer-events-none" />
       <div className="quantum-grid absolute inset-0 opacity-30" />
 
@@ -50,7 +63,7 @@ export default function Home() {
         </div>
 
         {/* Buttons */}
-        <div className="text-base sm:text-lg mt-auto mb-24 md:mb-40 flex flex-col md:flex-row items-center justify-center gap-6 sm:gap-10 md:gap-20 w-full max-w-6xl px-4">
+        <div className="text-base sm:text-lg mt-16 mb-24 md:mb-32 flex flex-col md:flex-row items-center justify-center gap-6 sm:gap-10 md:gap-20 w-full max-w-6xl px-4">
           {[
             {
               icon: <Bot className="h-10 w-10 text-blue-400" />,
@@ -75,7 +88,7 @@ export default function Home() {
               <div
                 className="arrow"
                 style={{
-                  top: "-40px",
+                  top: isDesktop ? "-100px" : "-80px",
                   animationDelay: delay,
                 }}
               />
@@ -96,20 +109,19 @@ export default function Home() {
 
         {/* Scroll indicator */}
         <Link href="#quantum-solutions" scroll={false}>
-  <div
-    className="scroll-indicator mt-100 mb-100 sm:mt-0 sm:mb-100 md:mb-100"
-    onClick={() => {
-      document.getElementById("quantum-solutions")?.scrollIntoView({
-        behavior: "smooth",
-      });
-    }}
-  >
-    <div className="scroll-arrow"></div>
-    <div className="scroll-arrow"></div>
-    <div className="scroll-text">Explore</div>
-  </div>
-</Link>
-
+          <div
+            className="scroll-indicator mt-40 mb-100 sm:mt-0 sm:mb-100 md:mb-100"
+            onClick={() => {
+              document.getElementById("quantum-solutions")?.scrollIntoView({
+                behavior: "smooth",
+              });
+            }}
+          >
+            <div className="scroll-arrow"></div>
+            <div className="scroll-arrow"></div>
+            <div className="scroll-text">Explore</div>
+          </div>
+        </Link>
       </div>
 
       {/* Full-width three-column section */}

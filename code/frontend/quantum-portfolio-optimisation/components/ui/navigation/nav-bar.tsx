@@ -10,7 +10,6 @@ export const NavBar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navLinks = [
-    { name: 'Home', path: '/' },
     { name: 'Dashboard', path: '/dashboard' },
     { name: 'Assistant', path: '/assistant' },
     { name: 'Analysis', path: '/analysis' },
@@ -19,9 +18,10 @@ export const NavBar: React.FC = () => {
   return (
     <nav className="bg-[#0f172a]/80 backdrop-blur-md border-b border-blue-400/20 sticky top-0 z-50 w-full">
       <div className="flex justify-between items-center px-6 py-4">
-        <div className="quantum-title text-xl font-bold">
+        {/* Left Logo -> Home Link */}
+        <Link href="/" className="quantum-title text-xl font-bold text-white hover:opacity-90 transition">
           Cert<span className="text-orange-600">AI</span>nty Quantum
-        </div>
+        </Link>
 
         {/* Desktop Nav */}
         <ul className="hidden sm:flex gap-6">
