@@ -307,18 +307,30 @@ const FullGraphs: React.FC = () => {
               </a>
             </div>
           </div>
-
-          {/* Live Data Section */}
           <h2
-              id="livedata"
-              className="scroll-target"
-              style={{ ...styles.heading, ...getResponsiveMargins() }}
-          >
-            Live Data
-          </h2>
+          id="livedata"
+          className="scroll-target"
+          style={{ ...styles.heading, ...getResponsiveMargins() }}
+        >
+          Live Data
+        </h2>
           <div style={{ ...styles.graphArea, ...getResponsiveMargins() }}>
-            {/* <TransferTable /> */}
-          </div>
+  {error && <p className="text-red-500">{error}</p>}
+  {!error && Object.keys(tokens).length === 0 && (
+    <p>📡 Loading token info...</p>
+  )}
+  {Object.entries(tokens).map(([symbol, token]) => (
+    <div
+      key={symbol}
+      className="space-y-2 mb-6 p-4 border border-white/20 rounded-xl bg-white/10"
+    >
+      <p><b>Name:</b> {token.name}</p>
+      <p><b>Symbol:</b> {token.symbol}</p>
+      <p><b>Decimals:</b> {token.decimals}</p>
+      <p><b>Total Supply:</b> {BigInt(token.totalSupply ?? "0").toLocaleString()}</p>
+    </div>
+  ))}
+</div>
         </div>
       </>
   );
