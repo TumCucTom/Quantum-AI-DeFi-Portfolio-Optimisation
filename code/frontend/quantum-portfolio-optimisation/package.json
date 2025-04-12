@@ -43,11 +43,8 @@
     "@types/react-dom": "18.2.7",
     "@wormhole-foundation/wormhole-query-sdk": "^0.0.14",
     "autoprefixer": "10.4.15",
-<<<<<<< HEAD
-    "chart.js": "^4.4.8",
-=======
     "axios": "^1.8.4",
->>>>>>> 191370312ef1fb5bdb0c237533735dcfb70607a2
+    "chart.js": "^4.4.8",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
