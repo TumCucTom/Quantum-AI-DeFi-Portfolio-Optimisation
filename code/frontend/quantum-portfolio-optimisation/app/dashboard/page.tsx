@@ -227,37 +227,37 @@ export default function Dashboard() {
                       <li>
                         <strong>TWAP</strong>: Classical time-weighted average price slicing. Useful for spreading <em>large orders</em> where market impact or <em>front
                         running</em> is a concern. Splits orders <em>evenly over a time window</em>.{" "}
-                          <a href="/code" className="text-blue-400 hover:underline">Learn more with our AI </a>
+                          <a href="/snippet" className="text-blue-400 hover:underline">Learn more with our AI </a>
                           or see our
-                          <a href="/code" className="text-blue-400 hover:underline"> the code snippet</a>.
+                          <a href="/snippet" className="text-blue-400 hover:underline"> the code snippet</a>.
                       </li>
                       <li>
                         <strong>VWAP</strong>: Volume-Weighted Average Price slicing. Useful for spreading <em>large
                         orders</em> where market impact or <em>front running</em> is a concern. Splits orders in portions
                         based on <em>historical or real-time</em> rading volumes (with liquidity).{" "}
-                        <a href="/code" className="text-blue-400 hover:underline">Learn more with our AI </a>
+                        <a href="/snippet" className="text-blue-400 hover:underline">Learn more with our AI </a>
                         or see our
-                        <a href="/code" className="text-blue-400 hover:underline"> the code snippet</a>.
+                        <a href="/snippet" className="text-blue-400 hover:underline"> the code snippet</a>.
                       </li>
                       <li>
                         <strong>QOS</strong>: Quantum-based order slicing. Taking the slicing as an <em>optimisation
                         problem</em>, we can minimise the execution cost and add further constraints from the above. <em>Especially
                         useful in illiquid markets</em> or when you want to add risk limits. We solve using a annealing and hybrid solvers for the QUBO.{" "}
-                          <a href="/code" className="text-blue-400 hover:underline">Learn more with our AI </a>
+                          <a href="/snippet" className="text-blue-400 hover:underline">Learn more with our AI </a>
                           or see our
-                          <a href="/code" className="text-blue-400 hover:underline"> code snippets</a>.
+                          <a href="/snippet" className="text-blue-400 hover:underline"> code snippets</a>.
                       </li>
                       <li>
                         <strong>QOR</strong>: Quantum-enhanced route optimisation. Different venue provide offer different liquidity pools, different fees, speeds and personal data risk. Taking this as a <em>combinatorial problem</em> we can <em>minimise slippage and cost</em> with constraints for venue caps, fees and time. We solve using a annealing and hybrid solvers for the QUBO.{" "}
-                        <a href="/code" className="text-blue-400 hover:underline">Learn more with our AI </a>
+                        <a href="/snippet" className="text-blue-400 hover:underline">Learn more with our AI </a>
                         or see our
-                        <a href="/code" className="text-blue-400 hover:underline"> code snippets</a>.
+                        <a href="/snippet" className="text-blue-400 hover:underline"> code snippets</a>.
                       </li>
                       <li>
                         <strong>QLCA</strong>: Quantum enhanced delayed cost impact awareness. HFTs can detect and front-run profitable trades, and so with time being imperative we can utilise quantum speed up on a model of spread, fees, slippage to form a minimisation formula. This high solution space if perfect for quantum algorithms tackling the multi-variable QUBOs created.{" "}
-                        <a href="/code" className="text-blue-400 hover:underline">Learn more with our AI </a>
+                        <a href="/snippet" className="text-blue-400 hover:underline">Learn more with our AI </a>
                         or see our
-                        <a href="/code" className="text-blue-400 hover:underline"> code snippets</a>.
+                        <a href="/snippet" className="text-blue-400 hover:underline"> code snippets</a>.
                       </li>
                     </ul>
                     {/* Done Button */}
