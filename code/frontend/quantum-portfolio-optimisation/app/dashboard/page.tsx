@@ -366,7 +366,6 @@ export default function Dashboard() {
 
           <div className="w-full lg:w-[45rem] border-t lg:border-t-0 lg:border-l border-blue-400/20 flex flex-col">
             {/* Pass the onSend handler and chat history to the AIChat component */}
-            // @ts-ignore
             <AIChat onSend={handleSendPrompt} chatHistory={chatHistory} />
           </div>
         </div>
