@@ -6,11 +6,38 @@ from scipy.special import erfinv
 # Qiskit Imports for Quantum RNG & Amplitude Estimation
 # -----------------------------------------------------
 from qiskit import QuantumCircuit
-from qiskit_aer import Aer
+from qiskit_aer import Aer, AerSimulator
 from qiskit_algorithms import AmplitudeEstimation
 from qiskit_finance.applications import EuropeanCallPricing
 from qiskit_finance.circuit.library import LogNormalDistribution
-from qiskit.providers.aer.primitives import Sampler
+from qiskit_algorithms.amplitude_estimators.estimation_problem import EstimationProblem
+from qiskit.primitives import Sampler
+
+# ------------------------------------------------------------------------------
+# Dummy Sampler implementation (for qiskit-aer 0.17.0)
+#
+# qiskit‑algorithms 0.3.1 expects a Sampler primitive (normally available via
+# “from qiskit.providers.aer.primitives import Sampler”) but that isn’t present
+# in qiskit‑aer 0.17.0. We therefore wrap the AerSimulator to supply a minimal
+# sampler-like interface.
+# ------------------------------------------------------------------------------
+class DummySampler:
+    def __init__(self):
+        # Initialize an AerSimulator instance.
+        self._simulator = AerSimulator()
+
+    def run(self, circuits, **run_options):
+        """
+        Run the given circuit(s) using the AerSimulator and return the result.
+        This mimics the basic behavior of the new Sampler primitive.
+        """
+        # Ensure circuits is a list (the new interface usually accepts a list)
+        if not isinstance(circuits, list):
+            circuits = [circuits]
+        # Run the circuits and return the result
+        job = self._simulator.run(circuits, **run_options)
+        result = job.result()
+        return result
 
 # -----------------------------
 # Classical Pricing Model
@@ -140,41 +167,47 @@ class QuantumMonteCarloSimulator:
 
     def run_quantum_amplitude_estimation(self, num_eval_qubits=3):
         try:
-            num_qubits = 3  # Can be adjusted for precision vs. performance
+            num_qubits = 3
+            bounds = (0, 2 * self.S0)
 
             mu = np.log(self.S0) + (self.r - 0.5 * self.sigma ** 2) * self.T
             sigma_tilde = self.sigma * np.sqrt(self.T)
-            bounds = (0, 2 * self.S0)
 
-            # Step 1: Create a LogNormalDistribution to represent the terminal asset price
-            distribution = LogNormalDistribution(
+            uncertainty_model = LogNormalDistribution(
                 num_qubits=num_qubits,
                 mu=mu,
                 sigma=sigma_tilde,
                 bounds=bounds
             )
 
-            # Step 2: Set up the European call option pricing problem
             european_call = EuropeanCallPricing(
-                distribution=distribution,
-                strike_price=self.strike
+                num_state_qubits=num_qubits,
+                strike_price=self.strike,
+                bounds=bounds,
+                uncertainty_model=uncertainty_model,
+                rescaling_factor=0.25
             )
 
-            # Step 3: Run QAE
             sampler = Sampler()
-            ae = AmplitudeEstimation(
-                num_eval_qubits=num_eval_qubits,
-                problem=european_call,
-                sampler=sampler
+            ae = AmplitudeEstimation(num_eval_qubits=num_eval_qubits, sampler=sampler)
+
+            # ✅ Create the EstimationProblem manually
+            rescaling_factor = 0.25  # Match this to what you passed to EuropeanCallPricing
+
+            problem = EstimationProblem(
+                state_preparation=european_call._state_preparation,
+                objective_qubits=european_call._objective_qubits,
+                post_processing=lambda x: x * rescaling_factor
             )
-            result = ae.estimate()
-            estimated_price = european_call.interpret(result)
+
+            result = ae.estimate(problem)
+            estimated_price = result.estimation
 
             print("Estimated Option Price (Quantum Amplitude Estimation): {:.4f}".format(estimated_price))
             return estimated_price, result
 
         except Exception as e:
-            print("Error during quantum amplitude estimation.")
+            print("Error during quantum amplitude estimation:")
             raise e
 
 
