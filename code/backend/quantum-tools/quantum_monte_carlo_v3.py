@@ -82,30 +82,26 @@ def plot_qae_result(result):
         print("Type of samples:", type(samples))
         print("Contents:", samples)
 
-def plot_qae_learning(simulator, max_eval_qubits=6, show_classical=True):
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from qiskit.primitives import Sampler
-    from qiskit_algorithms import AmplitudeEstimation
-    from qiskit_finance.applications import EuropeanCallPricing
-    from qiskit_finance.circuit.library import LogNormalDistribution
-    from qiskit_algorithms.amplitude_estimators.estimation_problem import EstimationProblem
+def plot_qae_learning(simulator, num_qubits = 5, max_eval_qubits=6, show_classical=True, normalise=True):
 
     estimates = []
     ci_lowers = []
     ci_uppers = []
 
-    # Optional: classical benchmark for comparison
+    # Use a dynamic rescaling factor based on bounds and strike
+    bounds = (0, 5 * simulator.S0)
+    rescaling_factor = bounds[1] - simulator.strike
+
+    # Get classical price to compare
     classical_price = None
     if show_classical:
-        classical_price = simulator.run_classical_simulation(visualize=False)
+        classical_price, _ = simulator.compute_option_price(
+            simulator.simulate_paths()[1][:, -1]
+        )
 
     for q in range(1, max_eval_qubits + 1):
         print(f"Running QAE with {q} evaluation qubits...")
 
-        # Define uncertainty model
-        num_qubits = 3
-        bounds = (0, 2 * simulator.S0)
         mu = np.log(simulator.S0) + (simulator.r - 0.5 * simulator.sigma ** 2) * simulator.T
         sigma_tilde = simulator.sigma * np.sqrt(simulator.T)
 
@@ -116,7 +112,6 @@ def plot_qae_learning(simulator, max_eval_qubits=6, show_classical=True):
             bounds=bounds
         )
 
-        rescaling_factor = 0.25
         european_call = EuropeanCallPricing(
             num_state_qubits=num_qubits,
             strike_price=simulator.strike,
@@ -125,17 +120,25 @@ def plot_qae_learning(simulator, max_eval_qubits=6, show_classical=True):
             rescaling_factor=rescaling_factor
         )
 
-        # Setup QAE
         problem = EstimationProblem(
             state_preparation=european_call._state_preparation,
             objective_qubits=european_call._objective_qubits,
             post_processing=lambda x: x * rescaling_factor
         )
+
         ae = AmplitudeEstimation(num_eval_qubits=q, sampler=Sampler())
         result = ae.estimate(problem)
 
         est = result.estimation
         ci = result.confidence_interval
+
+        # Normalize if requested
+        if normalise:
+            est /= rescaling_factor
+            ci = [c / rescaling_factor for c in ci]
+            classical_norm = classical_price / rescaling_factor if classical_price else None
+        else:
+            classical_norm = classical_price
 
         estimates.append(est)
         ci_lowers.append(ci[0])
@@ -144,23 +147,23 @@ def plot_qae_learning(simulator, max_eval_qubits=6, show_classical=True):
     # Plotting
     eval_range = range(1, max_eval_qubits + 1)
     plt.figure(figsize=(10, 6))
-    plt.plot(eval_range, estimates, marker='o', label='QAE Estimate')
+    plt.plot(eval_range, estimates, marker='o', label='QAE Estimate (normalised)' if normalise else 'QAE Estimate')
     plt.fill_between(eval_range, ci_lowers, ci_uppers, alpha=0.3, label='Confidence Interval')
     plt.plot(eval_range, ci_lowers, '--', color='gray', alpha=0.5)
     plt.plot(eval_range, ci_uppers, '--', color='gray', alpha=0.5)
 
-    if classical_price:
-        plt.axhline(classical_price, color='green', linestyle='--', linewidth=2,
-                    label=f'Classical MC: {classical_price:.4f}')
+    if show_classical and classical_norm:
+        plt.axhline(classical_norm, color='green', linestyle='--', linewidth=2,
+                    label=f'Classical MC (normalised): {classical_norm:.4f}')
 
     plt.xlabel("Number of Evaluation Qubits")
-    plt.ylabel("Estimated Option Price")
+    plt.ylabel("Normalized Option Price" if normalise else "Estimated Option Price")
     plt.title("Quantum Amplitude Estimation Learning Curve")
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
-    # plt.xscale('log', base=2)  # Optional: use log-scale for qubits
     plt.show()
+
 
 # -----------------------------
 # Classical Pricing Model
@@ -180,7 +183,7 @@ def quantum_random_normal(num_samples, num_qubits=16):
     Procedure:
       1. Create a circuit that puts 'num_qubits' into superposition.
       2. Measure to obtain bitstrings.
-      3. Convert each bitstring to an integer and normalize into [0, 1).
+      3. Convert each bitstring to an integer and normalise into [0, 1).
       4. Transform uniform values to a normal distribution using the inverse error function.
 
     The inverse transformation applied is:
@@ -197,7 +200,7 @@ def quantum_random_normal(num_samples, num_qubits=16):
     # get_memory returns a list of bitstring results (one per shot)
     memory = result.get_memory(qc)
 
-    # Convert bitstrings to integers and then normalize to [0, 1)
+    # Convert bitstrings to integers and then normalise to [0, 1)
     random_ints = [int(bits, 2) for bits in memory]
     uniform_values = np.array(random_ints) / float(2**num_qubits)
 
@@ -309,14 +312,14 @@ class QuantumMonteCarloSimulator:
                 strike_price=self.strike,
                 bounds=bounds,
                 uncertainty_model=uncertainty_model,
-                rescaling_factor=0.25
+                rescaling_factor = bounds[1] - simulator.strike
             )
 
             sampler = Sampler()
             ae = AmplitudeEstimation(num_eval_qubits=num_eval_qubits, sampler=sampler)
 
             # ✅ Create the EstimationProblem manually
-            rescaling_factor = 0.25  # Match this to what you passed to EuropeanCallPricing
+            rescaling_factor = bounds[1] - simulator.strike
 
             problem = EstimationProblem(
                 state_preparation=european_call._state_preparation,
@@ -354,4 +357,4 @@ if __name__ == "__main__":
     simulator.run_quantum_amplitude_estimation(num_eval_qubits=3)
 
     print("=== Running QAE Learning Curve ===")
-    plot_qae_learning(simulator, max_eval_qubits=6)
+    plot_qae_learning(simulator, num_qubits=4, max_eval_qubits=6, normalise=True)
