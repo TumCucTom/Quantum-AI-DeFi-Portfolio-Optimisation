@@ -170,7 +170,7 @@ export default function Dashboard() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-            <div className="relative bg-blue-900/50 border border-blue-400/30 rounded p-6 text-white aspect-square min-h-[300px]">
+            <div className="relative bg-blue-900/50 border border-blue-400/30 rounded p-6 text-white min-h-[300px] max-h-[400px] overflow-y-auto">
               <p className="font-semibold text-lg mb-4 flex justify-between items-center">
                 Control
                 <button
