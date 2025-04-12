@@ -129,75 +129,57 @@ const Chatbot: React.FC = () => {
           ))}
         </div>
 
-        <div style={styles.inputContainer}>
-          <input
-            type="text"
-            placeholder="Ask something..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            style={styles.input}
-          />
-          <button onClick={handleSend} style={styles.button}>Send</button>
-        </div>
+      <div style={styles.inputContainer}>
+        <input
+          style={styles.input}
+          type="text"
+          placeholder="Type your question..."
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+        />
+        <button style={styles.sendButton} onClick={sendMessage}>
+          Send
+        </button>
       </div>
     </div>
   );
 };
 
-export default Chatbot;
+export default FullChatbot;
 
+// Inline styles for illustration
 const styles: { [key: string]: React.CSSProperties } = {
-  messages: {
-    flex: 1,
-    overflowY: 'auto',
+  container: {
+    maxWidth: '600px',
+    margin: '40px auto',
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.75rem',
-    paddingBottom: '0.75rem',
   },
-  message: {
-    maxWidth: '75%',
-    padding: '0.9rem',
-    borderRadius: '10px',
-    lineHeight: '1.4',
-    fontSize: '0.9rem',
+  chatWindow: {
+    flex: 1,
+    minHeight: '400px',
+    border: '1px solid #ccc',
+    padding: '1rem',
+    marginBottom: '1rem',
+    overflowY: 'auto',
+  },
+  chatMessage: {
+    marginBottom: '0.5rem',
   },
   inputContainer: {
     display: 'flex',
-    gap: '0.4rem',
+    gap: '0.5rem',
   },
   input: {
     flex: 1,
-    padding: '0.7rem 0.9rem',
-    borderRadius: '10px',
-    border: 'none',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    color: 'white',
-    fontSize: '0.9rem',
-    outline: 'none',
+    padding: '0.5rem',
   },
-  button: {
-    backgroundColor: '#6366f1',
+  sendButton: {
+    padding: '0.5rem 1rem',
+    backgroundColor: '#0070f3',
     border: 'none',
-    borderRadius: '10px',
-    padding: '0.7rem 1rem',
-    color: 'white',
+    color: '#fff',
     cursor: 'pointer',
-    fontWeight: 500,
-  },
-  newChatButton: {
-    padding: '0.5rem 0.9rem',
-    borderRadius: '999px',
-    border: 'none',
-    backgroundColor: '#3b82f6',
-    color: 'white',
-    fontWeight: 500,
-    marginBottom: '0.8rem',
-    cursor: 'pointer',
-  },
-  history: {
-    flex: 1,
-    overflowY: 'auto',
   },
 };

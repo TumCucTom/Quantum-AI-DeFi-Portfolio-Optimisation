@@ -1,3 +1,5 @@
+import numpy as np
+import dwavebinarycsp
 import dimod
 from dwave.system import DWaveSampler, EmbeddingComposite
 

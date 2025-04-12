@@ -1,14 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React from 'react';
 import { usePathname } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
 
 export const NavBar: React.FC = () => {
   const pathname = usePathname();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Define navigation links
   const navLinks = [
     { name: 'Dashboard', path: '/dashboard' },
     { name: 'Assistant', path: '/assistant' },

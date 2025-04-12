@@ -1,12 +1,14 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-"""""
-from demo-tools.demo import twap_slicing
-from demo-tools.demo import vwap_slicing
-from demo-tools.demo import quantum_order_routing
-from demo-tools.demo import quantum_latency_costs
-"""
-from AIs.groq.groq_client import query_groq, quantum_prompt
+import requests
+from dotenv import load_dotenv
+import os
+
+from demo_tools.demo import twap_slicing
+from demo_tools.demo import vwap_slicing
+from demo_tools.demo import quantum_order_routing
+from demo_tools.demo import quantum_latency_costs
+
 
 
 app = Flask(__name__)
@@ -54,17 +56,68 @@ def classical_vwap():
     result = vwap_slicing(volume, profile)
     return jsonify({"slices": result})
 
-@app.route("/quantum/groq", methods=["POST"])
-def quantum_groq_endpoint():
-    data = request.json
-    user_prompt = data.get("prompt", "")
-    full_prompt = quantum_prompt(user_prompt)
+
+@app.route("/brian/auto", methods=["POST"])
+def brian_auto_route():
+    data = request.get_json()
+    prompt = data.get("prompt")
+
+    if not prompt:
+        return jsonify({"error": "Prompt is required."}), 400
+
+    headers = {
+        "Content-Type": "application/json",
+        "x-brian-api-key": os.getenv("BRIAN_API_KEY")
+    }
+
+    # Step 1: Use Brian's /parameters-extraction to understand intent
     try:
-        response = query_groq(full_prompt)
-        return jsonify({"response": response})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        extraction_res = requests.post(
+            "https://api.brianknows.org/api/v0/agent/parameters-extraction",
+            headers=headers,
+            json={"prompt": prompt}
+        )
+        extraction_res.raise_for_status()
+        extraction_data = extraction_res.json()
+        intent = extraction_data.get("intent", "info")  # fallback to info
 
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": f"Intent extraction failed: {str(e)}"}), 500
 
+    # Step 2: Map intent to the right endpoint
+    intent_to_endpoint = {
+        "swap": "transaction",
+        "transfer": "transaction",
+        "info": "knowledge",
+        "deploy_contract": "smart-contract",
+        "chat": "agent",
+        "network_info": "networks",
+        "action_help": "actions",
+        "parameter_request": "parameters-extraction",
+    }
+
+    endpoint = intent_to_endpoint.get(intent, "knowledge")  # default fallback
+
+    # Step 3: Send prompt to the selected endpoint
+    try:
+        response = requests.post(
+            f"https://api.brianknows.org/api/v0/agent/{endpoint}",
+            headers=headers,
+            json={"prompt": prompt}
+        )
+        response.raise_for_status()
+        result = response.json()
+
+        reply = result.get("result", {}).get("answer") or result.get("result")
+
+        return jsonify({
+            "reply": reply,
+            "used_endpoint": endpoint,
+            "detected_intent": intent,
+            "raw_response": result
+        })
+
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": f"Brian request failed: {str(e)}"}), 500
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=3002, debug=True)
+    app.run(host='0.0.0.0', port=3003, debug=True)

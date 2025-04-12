@@ -11,7 +11,7 @@ export default function Home() {
 
   useEffect(() => {
     const handleResize = () => {
-      setIsDesktop(window.innerWidth >= 1024); // Tailwind 기준 md: 768, lg: 1024
+      setIsDesktop(window.innerWidth >= 1024); // Tailwind 기준 lg
     };
 
     handleResize();
@@ -46,17 +46,24 @@ export default function Home() {
 
       {/* Animated background gradients */}
       <div className="absolute inset-0">
-        <div className="absolute top-0 left-1/4 w-64 sm:w-80 md:w-96 h-64 sm:h-80 md:h-96 bg-blue-500/20 rounded-full blur-[100px] animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-64 sm:w-80 md:w-96 h-64 sm:h-80 md:h-96 bg-cyan-500/20 rounded-full blur-[100px] animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 sm:w-80 md:w-96 h-64 sm:h-80 md:h-96 bg-purple-500/20 rounded-full blur-[100px] animate-pulse delay-2000" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-[100px] animate-pulse" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-[100px] animate-pulse delay-1000" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500/20 rounded-full blur-[100px] animate-pulse delay-2000" />
       </div>
 
       <div className="relative z-10 flex flex-col items-center justify-start px-6 h-[calc(100vh-60px)]">
         {/* Title + Subtitle */}
         <div className="text-center mt-16">
-          <h1 className="quantum-title text-4xl sm:text-6xl md:text-7xl lg:text-9xl font-bold mb-4">
-            Cert<span className="text-orange-600">AI</span>nty Quantum
-          </h1>
+        <h1 className="text-[2.75rem] sm:text-6xl md:text-7xl lg:text-9xl font-bold mb-4 !text-[2.75rem] leading-[3.5rem] sm:leading-normal text-center">
+  Cert<span className="text-orange-600">AI</span>nty
+  <br className="block sm:hidden" />
+  <span className="sm:inline hidden"> </span>
+  Quantum
+</h1>
+
+
+
+
           <p className="text-base sm:text-lg md:text-xl mt-8 text-blue-200/80">
             Quantum enhanced portfolio optimisation tools – made easy with AI
           </p>
@@ -66,19 +73,19 @@ export default function Home() {
         <div className="text-base sm:text-lg mt-16 mb-24 md:mb-32 flex flex-col md:flex-row items-center justify-center gap-6 sm:gap-10 md:gap-20 w-full max-w-6xl px-4">
           {[
             {
-              icon: <Bot className="h-10 w-10 text-blue-400" />,
+              icon: <Bot className="h-10 w-10 text-blue-400"/>,
               text: "Quantum Informed AI Assistant",
               delay: "0s",
               link: "/assistant",
             },
             {
-              icon: <Wallet className="h-10 w-10 text-blue-400" />,
+              icon: <Wallet className="h-10 w-10 text-blue-400"/>,
               text: "AI x Quantum Execution",
               delay: "0.5s",
               link: "/dashboard",
             },
             {
-              icon: <LineChart className="h-10 w-10 text-blue-400" />,
+              icon: <LineChart className="h-10 w-10 text-blue-400"/>,
               text: "Quantum x Wormhole analysis",
               delay: "1s",
               link: "/analysis",
@@ -124,9 +131,10 @@ export default function Home() {
         </Link>
       </div>
 
+
       {/* Full-width three-column section */}
       <div className="w-full">
-        <ThreeColumnSection />
+        <ThreeColumnSection/>
       </div>
     </div>
   );
