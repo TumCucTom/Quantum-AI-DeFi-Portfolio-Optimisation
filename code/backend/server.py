@@ -57,39 +57,67 @@ def classical_vwap():
     return jsonify({"slices": result})
 
 
-@app.route("/brian/chat", methods=["POST"])
-def brian_chat():
-    data = request.json
+@app.route("/brian/auto", methods=["POST"])
+def brian_auto_route():
+    data = request.get_json()
     prompt = data.get("prompt")
 
     if not prompt:
-        return jsonify({"error": "Prompt is required"}), 400
+        return jsonify({"error": "Prompt is required."}), 400
 
     headers = {
         "Content-Type": "application/json",
         "x-brian-api-key": os.getenv("BRIAN_API_KEY")
     }
 
-    payload = {
-        "prompt": prompt,
-        "kb": "default"
+    # Step 1: Use Brian's /parameters-extraction to understand intent
+    try:
+        extraction_res = requests.post(
+            "https://api.brianknows.org/api/v0/agent/parameters-extraction",
+            headers=headers,
+            json={"prompt": prompt}
+        )
+        extraction_res.raise_for_status()
+        extraction_data = extraction_res.json()
+        intent = extraction_data.get("intent", "info")  # fallback to info
+
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": f"Intent extraction failed: {str(e)}"}), 500
+
+    # Step 2: Map intent to the right endpoint
+    intent_to_endpoint = {
+        "swap": "transaction",
+        "transfer": "transaction",
+        "info": "knowledge",
+        "deploy_contract": "smart-contract",
+        "chat": "agent",
+        "network_info": "networks",
+        "action_help": "actions",
+        "parameter_request": "parameters-extraction",
     }
 
+    endpoint = intent_to_endpoint.get(intent, "knowledge")  # default fallback
+
+    # Step 3: Send prompt to the selected endpoint
     try:
         response = requests.post(
-            "https://api.brianknows.org/api/v0/agent/knowledge",
+            f"https://api.brianknows.org/api/v0/agent/{endpoint}",
             headers=headers,
-            json=payload
+            json={"prompt": prompt}
         )
         response.raise_for_status()
         result = response.json()
-        answer = result.get("result", {}).get("answer", "No answer found.")
 
-        return jsonify({"reply": answer})
+        reply = result.get("result", {}).get("answer") or result.get("result")
+
+        return jsonify({
+            "reply": reply,
+            "used_endpoint": endpoint,
+            "detected_intent": intent,
+            "raw_response": result
+        })
 
     except requests.exceptions.RequestException as e:
-        return jsonify({"error": str(e)}), 500
-
-
+        return jsonify({"error": f"Brian request failed: {str(e)}"}), 500
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=3003, debug=True)
