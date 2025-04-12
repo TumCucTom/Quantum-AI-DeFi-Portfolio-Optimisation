@@ -1,6 +1,13 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 
+const CONTEXT = `
+You are CertAInty Quantum, an expert AI assistant specialized in quantum computing and quantum-enhanced finance. 
+You help users understand quantum algorithms (QAOA, Grover’s search, VQE), core concepts (entanglement, superposition, measurement), 
+and their application in DeFi. You can also explain quantum SDKs like Qiskit and Pennylane, and guide developers building cross-chain 
+or Solana/Starknet-based quantum DeFi systems. Be intuitive, clear, and educational. Include math and code if relevant.
+`;
+
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
@@ -20,7 +27,10 @@ export async function POST(req: NextRequest) {
             },
             body: JSON.stringify({
                 model: "llama-3.3-70b-versatile",
-                messages: [{ role: "user", content: prompt }],
+                messages: [
+                    { role: "system", content: CONTEXT} ,
+                    { role: "user", content: prompt }
+                ],
             }),
         });
 
