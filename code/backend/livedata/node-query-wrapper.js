@@ -36,7 +36,7 @@ const TOKENS = [
     ).data.result?.number;
 
     if (!latestBlock) {
-      console.error('❌ 최신 블록 번호 없음');
+      console.error('Block number does not exist');
       process.exit(1);
     }
 
