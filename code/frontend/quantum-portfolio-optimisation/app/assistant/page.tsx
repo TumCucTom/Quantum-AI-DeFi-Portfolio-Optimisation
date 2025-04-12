@@ -47,7 +47,7 @@ const FullChatbot: React.FC = () => {
 
       const aiMessage: Message = {
         sender: 'AI Assistant',
-        text: data?.choices?.[0]?.message?.content || 'Something went wrong!',
+        text: (data?.choices?.[0]?.message?.content || 'Something went wrong!').replace(/\n/g, '\n\n\n'),
       };
 
       if (messages.length === 0) {
