@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import '../globals.css';
@@ -13,7 +13,8 @@ interface Conversation {
   messages: Message[];
 }
 
-const Chatbot: React.FC = () => {
+// Name the component the same as what we'll export
+const FullChatbot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -23,33 +24,33 @@ const Chatbot: React.FC = () => {
     if (!input.trim()) return;
 
     const userMessage: Message = { sender: 'user', text: input };
-    const thinkingMessage: Message = { sender: 'AI Assistant', text: 'Thinking ...' };
     setMessages((prev) => [...prev, userMessage]);
 
     try {
       const res = await fetch('http://localhost:3002/quantum/groq', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: input }),
       });
 
       const data = await res.json();
-
       const aiMessage: Message = {
         sender: 'AI Assistant',
         text: data.response || 'Something went wrong!',
       };
 
+      // If no existing conversation, create a new one
       if (messages.length === 0) {
-        const newTitle = input.length > 40 ? input.slice(0, 40) + '...' : input;
+        const newTitle =
+          input.length > 40 ? input.slice(0, 40) + '...' : input;
+
         const newConversation: Conversation = {
           title: newTitle,
           messages: [userMessage, aiMessage],
         };
         setConversations([newConversation, ...conversations]);
       } else {
+        // Otherwise, add to the first conversation for now
         const updated = [...conversations];
         if (updated[0]) {
           updated[0].messages = [...messages, userMessage, aiMessage];
@@ -77,14 +78,13 @@ const Chatbot: React.FC = () => {
     setMessages(conversations[index].messages);
   };
 
-  // @ts-ignore
-  // @ts-ignore
-  // @ts-ignore
   return (
     <div className="flex flex-col md:flex-row w-full h-[95vh] p-3 gap-3">
       {/* Sidebar */}
       <div className="w-full md:w-52 bg-white/5 text-white rounded-2xl p-3 shadow-md backdrop-blur-md">
-        <button onClick={handleNewChat} style={styles.newChatButton}>+ New Chat</button>
+        <button onClick={handleNewChat} style={styles.newChatButton}>
+          + New Chat
+        </button>
         <div style={styles.history}>
           <h4 style={{ color: '#94a3b8', marginBottom: '0.5rem' }}>History</h4>
           <ul style={{ listStyle: 'none', padding: 0, color: '#cbd5e1' }}>
@@ -103,14 +103,15 @@ const Chatbot: React.FC = () => {
 
       {/* Chat area */}
       <div className="flex flex-col flex-1 bg-white/5 text-white rounded-2xl p-3 shadow-xl backdrop-blur-md">
+        {/* Messages */}
         <div style={styles.messages}>
           {messages.map((msg, i) => (
             <div
               key={i}
-              className="chat-message"
               style={{
                 ...styles.message,
-                alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
+                alignSelf:
+                  msg.sender === 'user' ? 'flex-end' : 'flex-start',
                 backgroundColor:
                   msg.sender === 'user'
                     ? 'rgba(99,102,241,0.15)'
@@ -129,18 +130,20 @@ const Chatbot: React.FC = () => {
           ))}
         </div>
 
-      <div style={styles.inputContainer}>
-        <input
-          style={styles.input}
-          type="text"
-          placeholder="Type your question..."
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-        />
-        <button style={styles.sendButton} onClick={sendMessage}>
-          Send
-        </button>
+        {/* Input */}
+        <div style={styles.inputContainer}>
+          <input
+            style={styles.input}
+            type="text"
+            placeholder="Type your question..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+          />
+          <button style={styles.sendButton} onClick={handleSend}>
+            Send
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -148,24 +151,29 @@ const Chatbot: React.FC = () => {
 
 export default FullChatbot;
 
-// Inline styles for illustration
+// Inline styles
 const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    maxWidth: '600px',
-    margin: '40px auto',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  chatWindow: {
-    flex: 1,
-    minHeight: '400px',
-    border: '1px solid #ccc',
-    padding: '1rem',
+  newChatButton: {
     marginBottom: '1rem',
-    overflowY: 'auto',
+    backgroundColor: '#0070f3',
+    color: '#fff',
+    border: 'none',
+    padding: '0.5rem 1rem',
+    cursor: 'pointer',
   },
-  chatMessage: {
-    marginBottom: '0.5rem',
+  history: {
+    marginTop: '1rem',
+  },
+  messages: {
+    flex: 1,
+    overflowY: 'auto',
+    marginBottom: '1rem',
+  },
+  message: {
+    margin: '0.5rem',
+    padding: '0.5rem',
+    borderRadius: '0.5rem',
+    maxWidth: '80%',
   },
   inputContainer: {
     display: 'flex',
