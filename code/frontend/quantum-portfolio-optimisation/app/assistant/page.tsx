@@ -30,7 +30,7 @@ const FullChatbot: React.FC = () => {
     setMessages((prev) => [...prev, userMessage]);
 
     try {
-      const res = await fetch("/api/groq", {
+      const res = await fetch("/api/jesko-main", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

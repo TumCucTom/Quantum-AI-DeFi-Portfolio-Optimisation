@@ -1,15 +1,17 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import hljs from "highlight.js";
+import "highlight.js/styles/a11y-dark.css"; // or another theme
 
 export default function NewPage() {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [selectedQuantum, setSelectedQuantum] = useState<string | null>(null);
   const [selectedClassical, setSelectedClassical] = useState<string | null>(null);
-  const [selectedSimple, setSelectedSimple] = useState<"QMC" | "QTDA" | null>(null);
+  const [selectedSimple, setSelectedSimple] = useState<"QMC" | "QTDA" | null>("QTDA");
   const [chatLog, setChatLog] = useState<{ role: "user" | "bot"; content: string }[]>([]);
   const [chatInput, setChatInput] = useState("");
-  const [viewMode, setViewMode] = useState<"chatbot" | "markdown">("chatbot");
+  const [codeContent, setCodeContent] = useState<string>("");
 
   const quantumOptions = [
     "Quantum order slicing",
@@ -46,19 +48,19 @@ export default function NewPage() {
 
   const boxTitle =
     selectedOption === "Quantum order slicing"
-      ? "Option1.py"
+      ? "quantum_order_slicing.py"
       : selectedOption === "Quantum order routing"
-      ? "Option2.py"
+      ? "quantum_order_routing.py"
       : selectedOption === "Quantum Latency cost Awareness"
-      ? "Option3.py"
+      ? "quantum_latency_cost_aware.py"
       : selectedOption === "Order slicing TWAP"
-      ? "Option4.py"
+      ? "twap.py"
       : selectedOption === "Order Slicing VWAP"
-      ? "Option5.py"
+      ? "vwap.py"
       : selectedSimple === "QMC"
-      ? "Option6.py"
+      ? "quantum_monte_carlo_simulations.py"
       : selectedSimple === "QTDA"
-      ? "Option7.py"
+      ? "quantum_TDA.py"
       : selectedOption || "";
 
   const descriptionText =
@@ -85,6 +87,18 @@ export default function NewPage() {
       localStorage.setItem(chatKey, JSON.stringify(chatLog));
     }
   }, [chatLog, chatKey]);
+
+  useEffect(() => {
+    if (!boxTitle.endsWith(".py")) return;
+
+    fetch(`/scripts/${boxTitle}`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to load script");
+          return res.text();
+        })
+        .then(setCodeContent)
+        .catch(() => setCodeContent("# Unable to load code"));
+  }, [boxTitle]);
 
   const generateBotResponse = (userInput: string) => {
     return `You said: "${userInput}". I'm a placeholder bot and more advanced responses are coming soon! 🤖`;
@@ -203,83 +217,59 @@ export default function NewPage() {
           {/* Info Box */}
           <div className="flex-1 h-[36rem] bg-blue-900/30 border border-blue-400/30 rounded-lg shadow-md p-6">
             <p className="text-lg font-semibold text-white">{boxTitle}</p>
-            <p className="text-sm text-blue-200 mt-2">{descriptionText}</p>
+            <pre className="overflow-auto h-full bg-blue-950/20 p-4 rounded-lg">
+              <code
+                  className="language-python text-sm text-blue-100"
+                  dangerouslySetInnerHTML={{
+                    __html: hljs.highlight(codeContent, {language: "python"}).value,
+                  }}
+              />
+            </pre>
           </div>
 
           {/* Chatbot Box */}
-          <div className="flex-1 h-[36rem] bg-blue-900/30 border border-blue-400/30 rounded-lg shadow-md p-4 flex flex-col">
-            <div className="flex justify-end gap-2 mb-3">
-              <button
-                onClick={() => setViewMode("chatbot")}
-                className={`px-3 py-1 text-xs rounded ${
-                  viewMode === "chatbot"
-                    ? "bg-blue-600 text-white"
-                    : "bg-blue-800/30 text-blue-300"
-                }`}
-              >
-                Chatbot
-              </button>
-              <button
-                onClick={() => setViewMode("markdown")}
-                className={`px-3 py-1 text-xs rounded ${
-                  viewMode === "markdown"
-                    ? "bg-blue-600 text-white"
-                    : "bg-blue-800/30 text-blue-300"
-                }`}
-              >
-                Markdown
-              </button>
-            </div>
-
-            {viewMode === "chatbot" ? (
-              <>
-                <p className="text-lg font-semibold text-white mb-2">Chatbot</p>
-                <div className="flex-1 overflow-y-auto space-y-2 text-sm text-blue-200 bg-blue-950/30 rounded p-3 mb-3">
-                  {chatLog.length === 0 ? (
-                    <p className="italic text-blue-400">
-                      Ask me something about {selectedOption || selectedSimple}...
-                    </p>
-                  ) : (
-                    chatLog.map((msg, idx) => (
+          <div
+              className="flex-1 h-[36rem] bg-blue-900/30 border border-blue-400/30 rounded-lg shadow-md p-4 flex flex-col">
+            <p className="text-lg font-semibold text-white mb-2">Chatbot</p>
+            <div className="flex-1 overflow-y-auto space-y-2 text-sm text-blue-200 bg-blue-950/30 rounded p-3 mb-3">
+              {chatLog.length === 0 ? (
+                  <p className="italic text-blue-400">
+                    Ask me something about {selectedOption || selectedSimple}...
+                  </p>
+              ) : (
+                  chatLog.map((msg, idx) => (
                       <div
-                        key={idx}
-                        className={`p-2 rounded ${
-                          msg.role === "user"
-                            ? "bg-blue-800/30 text-right"
-                            : "bg-blue-700/30 text-left"
-                        }`}
+                          key={idx}
+                          className={`p-2 rounded ${
+                              msg.role === "user"
+                                  ? "bg-blue-800/30 text-right"
+                                  : "bg-blue-700/30 text-left"
+                          }`}
                       >
                         <span className="font-medium text-blue-100">
                           {msg.role === "user" ? "You" : "Bot"}:
                         </span>{" "}
                         {msg.content}
                       </div>
-                    ))
-                  )}
-                </div>
-                <div className="flex">
-                  <input
-                    type="text"
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                    placeholder="Type your message..."
-                    className="flex-1 px-3 py-2 rounded-l bg-blue-950 border border-blue-400/30 text-white outline-none"
-                  />
-                  <button
-                    onClick={handleSend}
-                    className="px-4 py-2 rounded-r bg-blue-700 hover:bg-blue-600 border border-blue-400/30 text-white text-sm"
-                  >
-                    Send
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div className="flex-1 bg-blue-950/30 rounded p-4 text-sm text-blue-200">
-                <p className="text-lg font-semibold mb-2">Explanation</p>
-                <p>{dynamicInfo?.result || "No explanation available."}</p>
-              </div>
-            )}
+                  ))
+              )}
+            </div>
+            <div className="flex">
+              <input
+                  type="text"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                  placeholder="Type your message..."
+                  className="flex-1 px-3 py-2 rounded-l bg-blue-950 border border-blue-400/30 text-white outline-none"
+              />
+              <button
+                  onClick={handleSend}
+                  className="px-4 py-2 rounded-r bg-blue-700 hover:bg-blue-600 border border-blue-400/30 text-white text-sm"
+              >
+                Send
+              </button>
+            </div>
           </div>
         </div>
       )}
