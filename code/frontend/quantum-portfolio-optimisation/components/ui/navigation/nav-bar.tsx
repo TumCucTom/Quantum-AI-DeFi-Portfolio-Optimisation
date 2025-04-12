@@ -12,9 +12,11 @@ export const NavBar: React.FC = () => {
 
   // Define navigation links
   const navLinks = [
+    { name: 'Home', path: '/'},
     { name: 'Dashboard', path: '/dashboard' },
     { name: 'Assistant', path: '/assistant' },
     { name: 'Analysis', path: '/analysis' },
+    { name: 'Code snippet', path: '/snippet'},
   ];
 
   return (
