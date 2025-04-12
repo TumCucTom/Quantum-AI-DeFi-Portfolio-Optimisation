@@ -1,15 +1,19 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
+import json
 from dotenv import load_dotenv
 import os
 
 from demo_tools.demo import twap_slicing
 from demo_tools.demo import vwap_slicing
-from demo_tools.demo import quantum_order_routing
 from demo_tools.demo import quantum_latency_costs
 
+# Import our new quantum order routing optimizer
+from quantum_order_routing import optimize_order_routing
 
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
@@ -26,10 +30,9 @@ def quantum_order_slicing():
 @app.route("/quantum/order-routing", methods=["POST"])
 def quantum_order_routing_endpoint():
     data = request.json
-    order_volume = data.get("order_volume", 100000)
-    time_remaining = data.get("time_remaining", 5)
-    venue = quantum_order_routing(order_volume, time_remaining)
-    return jsonify({"selected_venue": venue})
+    total_shares = data.get("total_shares", 1000)
+    result = optimize_order_routing(total_shares)
+    return jsonify(result)
 
 @app.route("/quantum/latency-costs", methods=["POST"])
 def quantum_latency_costs_endpoint():
@@ -70,7 +73,7 @@ def brian_auto_route():
         "x-brian-api-key": os.getenv("BRIAN_API_KEY")
     }
 
-    # Step 1: Use Brian's /parameters-extraction to understand intent
+    # Step 1: Use Brian's /parameters-extraction to understand intent and extract parameters
     try:
         extraction_res = requests.post(
             "https://api.brianknows.org/api/v0/agent/parameters-extraction",
@@ -80,6 +83,18 @@ def brian_auto_route():
         extraction_res.raise_for_status()
         extraction_data = extraction_res.json()
         intent = extraction_data.get("intent", "info")  # fallback to info
+        
+        # Extract parameters needed for quantum optimization
+        parameters = extraction_data.get("parameters", {})
+        
+        # Get swap amount if present
+        swap_amount = None
+        if intent == "swap" and "amount" in parameters:
+            try:
+                swap_amount = float(parameters["amount"])
+            except (ValueError, TypeError):
+                # If amount can't be converted to float, leave it as None
+                pass
 
     except requests.exceptions.RequestException as e:
         return jsonify({"error": f"Intent extraction failed: {str(e)}"}), 500
@@ -109,13 +124,42 @@ def brian_auto_route():
         result = response.json()
 
         reply = result.get("result", {}).get("answer") or result.get("result")
-
-        return jsonify({
+        
+        # Prepare the response object
+        response_data = {
             "reply": reply,
             "used_endpoint": endpoint,
             "detected_intent": intent,
-            "raw_response": result
-        })
+            "extracted_parameters": parameters,
+        }
+        
+        # Step 4: For swap intents with an amount, run quantum order routing
+        if intent == "swap" and swap_amount is not None:
+            # Convert the amount to shares/units for the optimizer
+            total_shares = int(swap_amount * 100)  # Scale for better precision
+            if total_shares > 0:
+                # Run the quantum optimizer
+                routing_result = optimize_order_routing(total_shares)
+                
+                # Add the routing result to the response
+                response_data["quantum_routing"] = routing_result
+                
+                # Enhance the text reply with quantum routing info
+                venues_text = ", ".join([
+                    f"{alloc['venue']} ({alloc['amount']/100:.2f} units)" 
+                    for alloc in routing_result["venue_allocation"]
+                ])
+                
+                routing_summary = (
+                    f"\n\n🧠 Quantum Routing Optimization:\n"
+                    f"For your swap of {swap_amount} units, I've used quantum computing to optimize the routing:\n"
+                    f"• Optimal routing: {venues_text}\n"
+                    f"• Estimated total cost: ${routing_result['total_cost']:.6f}"
+                )
+                
+                response_data["reply"] += routing_summary
+
+        return jsonify(response_data)
 
     except requests.exceptions.RequestException as e:
         return jsonify({"error": f"Brian request failed: {str(e)}"}), 500

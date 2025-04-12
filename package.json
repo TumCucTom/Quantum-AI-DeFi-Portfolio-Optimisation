@@ -1,5 +1,10 @@
 {
   "dependencies": {
+    "@wormhole-foundation/sdk": "^1.14.2",
+    "@wormhole-foundation/sdk-evm": "^1.14.2",
     "react-markdown": "^7.1.2"
+  },
+  "overrides": {
+    "rpc-websockets": "7.10.0"
   }
 }
