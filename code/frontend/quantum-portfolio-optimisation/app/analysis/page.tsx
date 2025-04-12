@@ -1,12 +1,27 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import SectionNav from './sectionBar';
-// import TransferTable from '@/components/TransferTable';
+// Import chart components and necessary parts of chart.js
+import { Line, Bar, Scatter } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
 const FullGraphs: React.FC = () => {
+  // Responsive layout state
   const [isMobile, setIsMobile] = useState(false);
 
-  // State for Monte Carlo simulation controls
+  // Monte Carlo Simulation state
   const [useQuantumRNG, setUseQuantumRNG] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [useUploaded, setUseUploaded] = useState(false);
@@ -14,22 +29,25 @@ const FullGraphs: React.FC = () => {
   const [maxEvalQubits, setMaxEvalQubits] = useState(6);
   const [normalise, setNormalise] = useState(false);
 
-  // State for TDA controls
+  // TDA Analysis state
   const [tdaFile, setTdaFile] = useState<File | null>(null);
   const [tdaMethod, setTdaMethod] = useState<string>("loop");
   const [tdaUsePauli, setTdaUsePauli] = useState(false);
+
+  // State for API results
+  const [mcData, setMcData] = useState<any>(null);
+  const [tdaData, setTdaData] = useState<any>(null);
 
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
     };
-
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Common margin function
+  // Common responsive margins
   const getResponsiveMargins = (): React.CSSProperties =>
       isMobile ? { margin: '0 1rem' } : {};
 
@@ -51,21 +69,33 @@ const FullGraphs: React.FC = () => {
     }
   };
 
-  // Handler for run simulation button (Monte Carlo)
-  const handleRunSimulation = () => {
-    console.log("Run simulation clicked", {
+  // Run Monte Carlo simulation with custom parameters
+  const handleRunSimulation = async () => {
+    // Prepare payload with your simulation parameters.
+    const payload = {
       useQuantumRNG,
-      uploadedFile,
-      useUploaded,
       simQubits,
       maxEvalQubits,
-      normalise,
-    });
+      normalise
+    };
+
+    try {
+      const response = await fetch('http://localhost:5002/api/quantum_mc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      console.log("Simulation data:", data);
+      setMcData(data);
+    } catch (error) {
+      console.error("Error running simulation:", error);
+    }
   };
 
-  // Handler for default run simulation button (Monte Carlo)
-  const handleRunDefaultSimulation = () => {
-    // Reset Monte Carlo settings to defaults
+  // Run simulation with default settings (using GET for simplicity)
+  const handleRunDefaultSimulation = async () => {
+    // Reset state to defaults
     setUseQuantumRNG(false);
     setUploadedFile(null);
     setUseUploaded(false);
@@ -73,39 +103,151 @@ const FullGraphs: React.FC = () => {
     setMaxEvalQubits(6);
     setNormalise(false);
 
-    // Immediately run simulation with default values
-    console.log("Run simulation with defaults", {
-      useQuantumRNG: false,
-      uploadedFile: null,
-      useUploaded: false,
-      simQubits: 3,
-      maxEvalQubits: 6,
-      normalise: false,
-    });
+    try {
+      const response = await fetch('http://localhost:5002/api/quantum_mc', {
+        method: 'GET'
+      });
+      const data = await response.json();
+      console.log("Default simulation data:", data);
+      setMcData(data);
+    } catch (error) {
+      console.error("Error running default simulation:", error);
+    }
   };
 
-  // Handler for run TDA analysis button
-  const handleRunTda = () => {
-    console.log("Run TDA Analysis clicked", {
-      tdaFile,
-      tdaMethod,
-      tdaUsePauli,
-    });
+  // Run TDA analysis with custom parameters
+  const handleRunTda = async () => {
+    // Build payload; if a CSV file is uploaded you might need to process it.
+    let payload: any = {
+      data_type: tdaMethod,
+      use_pauli: tdaUsePauli
+    };
+
+    if (tdaFile) {
+      // In a real app you’d use FileReader to get CSV content.
+      payload.data_type = "csv";
+    }
+
+    try {
+      const response = await fetch('http://localhost:5002/api/quantum_tda', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      console.log("TDA data:", data);
+      setTdaData(data);
+    } catch (error) {
+      console.error("Error running TDA analysis:", error);
+    }
   };
 
-  // Handler for default run TDA analysis button
-  const handleRunDefaultTda = () => {
-    // Reset TDA settings to defaults
+  // Run TDA with default settings
+  const handleRunDefaultTda = async () => {
     setTdaFile(null);
     setTdaMethod("loop");
     setTdaUsePauli(false);
 
-    // Immediately run TDA analysis with default values
-    console.log("Run TDA Analysis with defaults", {
-      tdaFile: null,
-      tdaMethod: "loop",
-      tdaUsePauli: false,
-    });
+    try {
+      const response = await fetch('http://localhost:5002/api/quantum_tda', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data_type: "loop", use_pauli: false })
+      });
+      const data = await response.json();
+      console.log("Default TDA data:", data);
+      setTdaData(data);
+    } catch (error) {
+      console.error("Error running default TDA analysis:", error);
+    }
+  };
+
+  // Render Monte Carlo charts if data is available
+  const renderMonteCarloCharts = () => {
+    if (!mcData) return null;
+
+    // Extract classical and quantum simulation data from API result
+    const classicalSim = mcData.classical_rng_simulation;
+    const quantumSim = mcData.quantum_rng_simulation;
+
+    // Create a line chart with a few classical sample paths
+    const classicalLineData = {
+      labels: classicalSim.time_grid,
+      datasets: classicalSim.sample_paths.slice(0, 5).map((path: number[], index: number) => ({
+        label: `Path ${index + 1}`,
+        data: path,
+        fill: false,
+        borderWidth: 1,
+      }))
+    };
+
+    // Create a bar chart comparing the estimated prices from classical and quantum runs
+    const comparisonData = {
+      labels: ['Classical', 'Quantum'],
+      datasets: [{
+        label: 'Estimated Price',
+        data: [classicalSim.estimated_price, quantumSim.estimated_price],
+        backgroundColor: [
+          'rgba(75, 192, 192, 0.6)',
+          'rgba(153, 102, 255, 0.6)'
+        ],
+      }]
+    };
+
+    return (
+        <div>
+          <h3>Monte Carlo Simulation Charts</h3>
+          <div style={{ marginBottom: '2rem' }}>
+            <h4>Classical Sample Paths</h4>
+            <Line data={classicalLineData} />
+          </div>
+          <div style={{ marginBottom: '2rem' }}>
+            <h4>Estimated Price Comparison</h4>
+            <Bar data={comparisonData} />
+          </div>
+        </div>
+    );
+  };
+
+  // Render TDA charts if data is available
+  const renderTdaCharts = () => {
+    if (!tdaData) return null;
+
+    // Use the quantum persistence diagrams (an array for each homology dimension)
+    const quantumPD = tdaData.quantum_persistence_diagrams;
+
+    const renderPersistence = (pd: number[][], homology: string) => {
+      const scatterData = {
+        datasets: [{
+          label: `Persistence Diagram ${homology}`,
+          data: pd.map(([birth, death]) => ({ x: birth, y: death })),
+          pointRadius: 5
+        }]
+      };
+      const options = {
+        scales: {
+          x: { title: { display: true, text: 'Birth' } },
+          y: { title: { display: true, text: 'Death' } }
+        }
+      };
+      return (
+          <div style={{ marginBottom: '2rem' }}>
+            <h4>{homology} Persistence Diagram</h4>
+            <Scatter data={scatterData} options={options} />
+          </div>
+      );
+    };
+
+    return (
+        <div>
+          <h3>Quantum TDA Charts</h3>
+          {quantumPD && quantumPD.map((pd: number[][], index: number) => (
+              <div key={index}>
+                {renderPersistence(pd, `H${index}`)}
+              </div>
+          ))}
+        </div>
+    );
   };
 
   return (
@@ -113,18 +255,13 @@ const FullGraphs: React.FC = () => {
         <SectionNav />
 
         <div style={styles.container}>
-          {/* Monte Carlo Section */}
-          <h2
-              id="montecarlo"
-              className="scroll-target"
-              style={{ ...styles.heading, ...getResponsiveMargins() }}
-          >
+          {/* Monte Carlo Simulation Section */}
+          <h2 id="montecarlo" className="scroll-target" style={{ ...styles.heading, ...getResponsiveMargins() }}>
             Quantum Monte Carlo Simulations
           </h2>
           <div style={{ ...styles.graphArea, ...getResponsiveMargins() }}>
-            {/* Monte Carlo Controls Section */}
+            {/* Controls for Monte Carlo */}
             <div style={styles.controlsContainer}>
-              {/* Buttons container for defaults & normal run */}
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button style={styles.defaultButton} onClick={handleRunDefaultSimulation}>
                   Defaults & Run
@@ -133,13 +270,10 @@ const FullGraphs: React.FC = () => {
                   Run Simulation
                 </button>
               </div>
-
               <div style={styles.controlGroup}>
                 <label style={styles.controlLabel}>Upload CSV File:</label>
                 <input type="file" accept=".csv" onChange={handleFileChange} />
               </div>
-
-              {/* Use Uploaded Data Toggle */}
               <div style={styles.controlGroup}>
                 <label style={styles.controlLabel}>Use Data:</label>
                 <span style={styles.toggleLabel}>Mock</span>
@@ -154,22 +288,15 @@ const FullGraphs: React.FC = () => {
                 </label>
                 <span style={styles.toggleLabel}>Uploaded</span>
               </div>
-
-              {/* Normalise Toggle */}
               <div style={styles.controlGroup}>
                 <label style={styles.controlLabel}>Normalise:</label>
                 <span style={styles.toggleLabel}>Off</span>
                 <label className="switch">
-                  <input
-                      type="checkbox"
-                      checked={normalise}
-                      onChange={(e) => setNormalise(e.target.checked)}
-                  />
+                  <input type="checkbox" checked={normalise} onChange={(e) => setNormalise(e.target.checked)} />
                   <span className="slider round"></span>
                 </label>
                 <span style={styles.toggleLabel}>On</span>
               </div>
-
               <div style={styles.controlGroup}>
                 <label style={styles.controlLabel}>Simulation Qubits:</label>
                 <input
@@ -196,14 +323,16 @@ const FullGraphs: React.FC = () => {
               </div>
             </div>
 
-            {/* Monte Carlo Graphs Section */}
+            {/* Monte Carlo Graphs */}
             <div style={styles.graphsContainer}>
-              <div style={styles.singleGraph}>Classical</div>
-              <div style={styles.singleGraph}>Quantum</div>
-              <div style={styles.singleGraph}>Quantum v Classical Bit Comparison</div>
+              {renderMonteCarloCharts() || (
+                  <>
+                    <div style={styles.singleGraph}>Classical</div>
+                    <div style={styles.singleGraph}>Quantum</div>
+                    <div style={styles.singleGraph}>Quantum v Classical Comparison</div>
+                  </>
+              )}
             </div>
-
-            {/* Monte Carlo Link Section */}
             <div style={styles.linkContainer}>
               <a href="/snippet" style={styles.snippetLink}>
                 See the code explained with |Jesko|^2
@@ -212,17 +341,11 @@ const FullGraphs: React.FC = () => {
           </div>
 
           {/* TDA Section */}
-          <h2
-              id="tda"
-              className="scroll-target"
-              style={{ ...styles.heading, ...getResponsiveMargins() }}
-          >
+          <h2 id="tda" className="scroll-target" style={{ ...styles.heading, ...getResponsiveMargins() }}>
             Quantum Topological Data Analysis (TDA)
           </h2>
           <div style={{ ...styles.graphArea, ...getResponsiveMargins() }}>
-            {/* TDA Controls */}
             <div style={styles.controlsContainer}>
-              {/* Buttons container for defaults & normal run */}
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button style={styles.defaultButton} onClick={handleRunDefaultTda}>
                   Defaults & Run
@@ -245,7 +368,7 @@ const FullGraphs: React.FC = () => {
                   <option value="synthetic">Synthetic Gaussian Clusters</option>
                   <option value="loop">Loop Structure</option>
                   <option value="swiss">Swiss Roll</option>
-                  <option value="uploaded" disabled={!tdaFile}>
+                  <option value="csv" disabled={!tdaFile}>
                     Uploaded Data
                   </option>
                 </select>
@@ -268,10 +391,14 @@ const FullGraphs: React.FC = () => {
             {/* TDA Graphs Carousel */}
             <div style={styles.carouselContainer}>
               <div style={styles.carouselTrack}>
-                <div style={styles.singleGraph}>Graph 1</div>
-                <div style={styles.singleGraph}>Graph 2</div>
-                <div style={styles.singleGraph}>Graph 3</div>
-                <div style={styles.singleGraph}>Graph 4</div>
+                {renderTdaCharts() || (
+                    <>
+                      <div style={styles.singleGraph}>Graph 1</div>
+                      <div style={styles.singleGraph}>Graph 2</div>
+                      <div style={styles.singleGraph}>Graph 3</div>
+                      <div style={styles.singleGraph}>Graph 4</div>
+                    </>
+                )}
               </div>
             </div>
             <div style={styles.linkContainer}>
@@ -281,16 +408,12 @@ const FullGraphs: React.FC = () => {
             </div>
           </div>
 
-          {/* Live Data Section */}
-          <h2
-              id="livedata"
-              className="scroll-target"
-              style={{ ...styles.heading, ...getResponsiveMargins() }}
-          >
+          {/* Live Data Section (Placeholder) */}
+          <h2 id="livedata" className="scroll-target" style={{ ...styles.heading, ...getResponsiveMargins() }}>
             Live Data
           </h2>
           <div style={{ ...styles.graphArea, ...getResponsiveMargins() }}>
-            {/* <TransferTable /> */}
+            {/* Example: You might include a live updating table or chart here */}
           </div>
         </div>
       </>
@@ -359,6 +482,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   graphsContainer: {
     display: 'flex',
+    flexDirection: 'column',
     gap: '1rem',
     marginBottom: '2rem',
   },
@@ -384,7 +508,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#cbd5e1',
     fontSize: '0.875rem',
   },
-  // New styles for TDA carousel
   carouselContainer: {
     overflowX: 'auto',
     padding: '1rem 0',

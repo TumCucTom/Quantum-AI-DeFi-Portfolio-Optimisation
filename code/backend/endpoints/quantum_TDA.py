@@ -8,7 +8,6 @@ from qiskit.primitives import Sampler
 from qiskit_algorithms.state_fidelities import ComputeUncompute
 from qiskit_machine_learning.kernels import FidelityQuantumKernel
 from qiskit.circuit.library import ZZFeatureMap, PauliFeatureMap
-
 import pandas as pd
 
 # ------------------------------
