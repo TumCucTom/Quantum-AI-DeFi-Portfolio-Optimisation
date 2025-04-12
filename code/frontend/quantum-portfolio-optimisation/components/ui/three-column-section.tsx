@@ -32,16 +32,16 @@ image: "tda2.png"            }
         title: "Quantum Informed AI Assistant",
         slides: [
             {
-                title: "|Jesko^2|",
-                body: "|Jesko^2| provides insights into our specific quantum solutions with knowledge in classical finance and DeFi. ",
+                title: "|Jesko|^2",
+                body: "|Jesko|^2 provides insights into our specific quantum solutions with knowledge in classical finance and DeFi. ",
 image: "qmc.png"            },
             {
-                title: "|Jesko^2|",
-                body: "|Jesko^2| provides insights into our specific quantum solutions with knowledge in classical finance and DeFi. ",
+                title: "|Jesko|^2",
+                body: "|Jesko|^2 provides insights into our specific quantum solutions with knowledge in classical finance and DeFi. ",
 image: "qmc.png"            },
             {
-                title: "|Jesko^2|",
-                body: "|Jesko^2| provides insights into our specific quantum solutions with knowledge in classical finance and DeFi. ",
+                title: "|Jesko|^2",
+                body: "|Jesko|^2 provides insights into our specific quantum solutions with knowledge in classical finance and DeFi. ",
 image: "qmc.png"            },
         ]
     },
@@ -71,11 +71,11 @@ image: "qmc.png"            }
         slides: [
             {
                 title: "Functionality scripts",
-                body: "Our quantum implementations with |Jesko^2| demystifying.",
+                body: "Our quantum implementations with |Jesko|^2 demystifying.",
 image: "qmc.png"            },
             {
                 title: "Functionality scripts",
-                body: "Our quantum implementations with |Jesko^2| demystifying.",
+                body: "Our quantum implementations with |Jesko|^2 demystifying.",
 image: "qmc.png"            },
             {
                 title: "Functionality scripts",

@@ -6,7 +6,7 @@ const SectionNav: React.FC = () => {
     <div style={styles.nav}>
       <a href="#montecarlo" style={styles.pill}>Quantum Monte Carlo</a>
       <a href="#tda" style={styles.pill}>Quantum TDA</a>
-      <a href="#livedata" style={styles.pill}>Live Data</a>
+      <a href="#livedata" style={styles.pill}>Wormhole Live Data</a>
     </div>
   );
 };

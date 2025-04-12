@@ -31,7 +31,7 @@ const FullGraphs: React.FC = () => {
           className="scroll-target"
           style={{ ...styles.heading, ...getResponsiveMargins() }}
         >
-          Quantum Monte Carlo Simulation
+          Quantum Monte Carlo Simulations
         </h2>
         <div
           style={{ ...styles.graphArea, ...getResponsiveMargins() }}
