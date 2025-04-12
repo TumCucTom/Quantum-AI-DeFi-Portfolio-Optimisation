@@ -1,12 +1,24 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Bot, LineChart, Wallet, LayoutDashboard } from "lucide-react";
-import { useEffect } from "react";
+import { Bot, LineChart, Wallet } from "lucide-react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ThreeColumnSection } from "@/components/ui/three-column-section";
 
 export default function Home() {
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 1024); // Tailwind 기준 md: 768, lg: 1024
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   useEffect(() => {
     const createParticle = () => {
       const particle = document.createElement("div");
@@ -28,6 +40,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative overflow-hidden flex flex-col">
+      {/* Particle background */}
       <div id="particleContainer" className="absolute inset-0 pointer-events-none" />
       <div className="quantum-grid absolute inset-0 opacity-30" />
 
@@ -49,8 +62,8 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Buttons around 75% down */}
-        <div className="text-xl mt-auto mb-[28vh] flex justify-center gap-40 w-full max-w-5xl">
+        {/* Buttons */}
+        <div className="text-base sm:text-lg mt-16 mb-24 md:mb-32 flex flex-col md:flex-row items-center justify-center gap-6 sm:gap-10 md:gap-20 w-full max-w-6xl px-4">
           {[
             {
               icon: <Bot className="h-10 w-10 text-blue-400"/>,
@@ -70,39 +83,39 @@ export default function Home() {
               delay: "1s",
               link: "/analysis",
             },
-          ].map(({icon, text, delay, link}, i) => (
-              <div key={i} className="flex flex-col items-center relative">
-                <div
-                    className="arrow"
-                    style={{
-                      top: "-40px",
-                      animationDelay: delay,
-                    }}
-                />
-                <Link href={link}>
-                  <Button
-                      className="quantum-card p-6 h-auto flex flex-col items-center justify-center gap-4 glow"
-                      variant="ghost"
-                  >
-                    {icon}
-                    <span className="text-sm font-medium text-blue-100 leading-tight">
-              {text}
-            </span>
-                  </Button>
-                </Link>
-              </div>
+          ].map(({ icon, text, delay, link }, i) => (
+            <div key={i} className="flex flex-col items-center relative">
+              <div
+                className="arrow"
+                style={{
+                  top: isDesktop ? "-100px" : "-80px",
+                  animationDelay: delay,
+                }}
+              />
+              <Link href={link}>
+                <Button
+                  className="quantum-card w-64 sm:w-72 md:w-80 p-5 h-auto flex flex-col items-center justify-center gap-4 glow"
+                  variant="ghost"
+                >
+                  {icon}
+                  <span className="text-sm font-medium text-blue-100 leading-tight text-center">
+                    {text}
+                  </span>
+                </Button>
+              </Link>
+            </div>
           ))}
         </div>
 
         {/* Scroll indicator */}
         <Link href="#quantum-solutions" scroll={false}>
           <div
-              className="scroll-indicator mb-8"
-              onClick={() => {
-                document.getElementById("quantum-solutions")?.scrollIntoView({
-                  behavior: "smooth",
-                });
-              }}
+            className="scroll-indicator mt-40 mb-100 sm:mt-0 sm:mb-100 md:mb-100"
+            onClick={() => {
+              document.getElementById("quantum-solutions")?.scrollIntoView({
+                behavior: "smooth",
+              });
+            }}
           >
             <div className="scroll-arrow"></div>
             <div className="scroll-arrow"></div>
