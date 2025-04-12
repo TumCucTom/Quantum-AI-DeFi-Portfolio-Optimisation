@@ -10,131 +10,124 @@ Quantum angle:
 - The persistence diagrams provide insights into the underlying structure of the data,
   which can be used for dimensionality reduction or market behavior analysis.
 """
-
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 from ripser import ripser
 from persim import plot_diagrams
+from sklearn.metrics.pairwise import rbf_kernel
+from sklearn.datasets import make_circles, make_swiss_roll
 
-# Qiskit imports for quantum kernel construction.
-from qiskit_machine_learning.kernels import QuantumKernel
-from qiskit.circuit.library import ZZFeatureMap
-from qiskit import BasicAer
+from qiskit.primitives import Sampler
+from qiskit_algorithms.state_fidelities import ComputeUncompute
+from qiskit_machine_learning.kernels import FidelityQuantumKernel
+from qiskit.circuit.library import ZZFeatureMap, PauliFeatureMap
 
-# -----------------------------------------------------------------------------
-# Synthetic Data Generation
-# -----------------------------------------------------------------------------
-def generate_synthetic_financial_data(num_samples: int = 150, num_features: int = 10) -> np.ndarray:
-    """
-    Simulates high-dimensional financial data that might reflect asset returns or market regimes.
-    For demonstration, we create a mixture of three Gaussian clusters.
-    
-    Args:
-        num_samples: Total number of data points.
-        num_features: Dimensionality of each data point.
-    
-    Returns:
-        A numpy array of shape (num_samples, num_features)
-    """
+
+def generate_synthetic_clusters(num_samples=150, num_features=10):
     np.random.seed(42)
     samples_per_cluster = num_samples // 3
     data = []
     for _ in range(3):
-        # Random cluster center in the feature space.
-        cluster_center = np.random.rand(num_features) * 100
-        # Generate points around the cluster center.
-        cluster_data = cluster_center + np.random.randn(samples_per_cluster, num_features) * 5
+        cluster_center = np.random.rand(num_features) * 300
+        cluster_data = cluster_center + np.random.randn(samples_per_cluster, num_features) * 1.5
         data.append(cluster_data)
     return np.vstack(data)
 
-# -----------------------------------------------------------------------------
-# Quantum Kernel Computation Using Qiskit
-# -----------------------------------------------------------------------------
-def compute_quantum_kernel_matrix(data: np.ndarray) -> np.ndarray:
-    """
-    Uses Qiskit's QuantumKernel with a ZZFeatureMap to compute the kernel (similarity)
-    matrix between data points. In the quantum feature space, the kernel captures the inner
-    products between the quantum states encoding the classical data.
-    
-    Args:
-        data: The input data as a numpy array of shape (num_samples, num_features)
-    
-    Returns:
-        Kernel matrix as a numpy array with shape (num_samples, num_samples)
-    """
-    # Define a feature map to encode data into a quantum state.
-    feature_map = ZZFeatureMap(feature_dimension=data.shape[1], reps=2, entanglement='linear')
-    quantum_instance = BasicAer.get_backend('statevector_simulator')
-    quantum_kernel = QuantumKernel(feature_map=feature_map, quantum_instance=quantum_instance)
 
-    # Evaluate the kernel matrix for all data points.
-    kernel_matrix = quantum_kernel.evaluate(x_vec=data)
-    return kernel_matrix
+def generate_loop_data(n_points=100, noise=0.05):
+    t = np.linspace(0, 2 * np.pi, n_points)
+    x = np.cos(t) + noise * np.random.randn(n_points)
+    y = np.sin(t) + noise * np.random.randn(n_points)
+    return np.stack([x, y], axis=1)
 
-# -----------------------------------------------------------------------------
-# Convert Kernel Matrix to Distance Matrix
-# -----------------------------------------------------------------------------
+
+def generate_swiss_roll(n_points=200, noise=0.1):
+    data, _ = make_swiss_roll(n_samples=n_points, noise=noise)
+    return data
+
+
+def compute_quantum_kernel_matrix(data: np.ndarray, use_pauli: bool = False) -> np.ndarray:
+    if use_pauli:
+        feature_map = PauliFeatureMap(feature_dimension=data.shape[1], reps=3, entanglement='full')
+    else:
+        feature_map = ZZFeatureMap(feature_dimension=data.shape[1], reps=10, entanglement='full')
+
+    sampler = Sampler()
+    fidelity = ComputeUncompute(sampler=sampler)
+    quantum_kernel = FidelityQuantumKernel(feature_map=feature_map, fidelity=fidelity)
+    return quantum_kernel.evaluate(x_vec=data)
+
+
 def kernel_to_distance(kernel_matrix: np.ndarray) -> np.ndarray:
-    """
-    Converts a kernel (similarity) matrix to a distance matrix.
-    A common choice is:
-    
-         d(x, y) = sqrt( k(x,x) + k(y,y) - 2 * k(x,y) )
-    
-    This transformation ensures that a high similarity (large kernel value)
-    corresponds to a smaller distance.
-    
-    Args:
-        kernel_matrix: A symmetric matrix of kernel values.
-        
-    Returns:
-        Distance matrix of the same shape.
-    """
     diag = np.diag(kernel_matrix)
-    # Broadcasting to compute pairwise distances.
-    distance_matrix = np.sqrt(np.abs(diag[:, None] + diag[None, :] - 2 * kernel_matrix))
-    return distance_matrix
+    return np.sqrt(np.abs(diag[:, None] + diag[None, :] - 2 * kernel_matrix))
 
-# -----------------------------------------------------------------------------
-# Compute Persistent Homology via Ripser
-# -----------------------------------------------------------------------------
+
 def compute_persistence(distance_matrix: np.ndarray):
-    """
-    Computes the persistent homology of a dataset given a pairwise distance matrix using ripser.
-    The resulting persistence diagrams capture the birth and death of topological features (e.g.,
-    connected components, loops).
-    
-    Args:
-        distance_matrix: A numpy array representing the pairwise distances.
-    
-    Returns:
-        A list of persistence diagrams.
-    """
-    diagrams = ripser(distance_matrix, distance_matrix=True)['dgms']
-    return diagrams
+    return ripser(distance_matrix, distance_matrix=True)['dgms']
 
-# -----------------------------------------------------------------------------
-# Main Pipeline Execution
-# -----------------------------------------------------------------------------
-def main():
-    # Step 1: Generate or load high-dimensional financial data.
-    data = generate_synthetic_financial_data(num_samples=150, num_features=10)
-    print("Data shape:", data.shape)
 
-    # Step 2: Compute the quantum kernel matrix using Qiskit.
-    kernel_matrix = compute_quantum_kernel_matrix(data)
-    print("Kernel matrix shape:", kernel_matrix.shape)
+def plot_all(data, q_kernel, c_kernel):
+    q_dist = kernel_to_distance(q_kernel)
+    c_dist = kernel_to_distance(c_kernel)
 
-    # Step 3: Transform the kernel matrix to a distance matrix.
-    distance_matrix = kernel_to_distance(kernel_matrix)
+    q_diagrams = compute_persistence(q_dist)
+    c_diagrams = compute_persistence(c_dist)
 
-    # Step 4: Compute persistent homology (topological features) of the data.
-    diagrams = compute_persistence(distance_matrix)
+    fig, axs = plt.subplots(1, 2, figsize=(14, 6))
+    plot_diagrams(q_diagrams, ax=axs[0], show=False)
+    axs[0].set_title("Quantum Kernel Persistence")
 
-    # Step 5: Visualize the persistence diagrams.
-    plot_diagrams(diagrams, show=True)
-    plt.title("Persistence Diagrams from Quantum TDA")
+    plot_diagrams(c_diagrams, ax=axs[1], show=False)
+    axs[1].set_title("Classical RBF Kernel Persistence")
     plt.show()
+
+    sns.heatmap(q_kernel, cmap="viridis")
+    plt.title("Quantum Kernel Matrix")
+    plt.show()
+
+    sns.heatmap(c_kernel, cmap="viridis")
+    plt.title("Classical RBF Kernel Matrix")
+    plt.show()
+
+
+def main():
+    print("Select data type:")
+    print("1 - Synthetic Gaussian clusters")
+    print("2 - Loop structure")
+    print("3 - Swiss roll")
+    print("4 - Load real data from CSV")
+    choice = input("Enter 1/2/3/4: ")
+
+    if choice == '1':
+        data = generate_synthetic_clusters(num_samples=100, num_features=4)
+    elif choice == '2':
+        data = generate_loop_data(n_points=100, noise=0.05)
+    elif choice == '3':
+        data = generate_swiss_roll(n_points=150, noise=0.1)
+    elif choice == '4':
+        import pandas as pd
+        file_path = input("Enter path to CSV: ")
+        df = pd.read_csv(file_path)
+        data = df.values
+        print("Loaded data with shape:", data.shape)
+    else:
+        print("Invalid choice. Exiting.")
+        return
+
+    print("Use PauliFeatureMap instead of ZZFeatureMap? (y/n):")
+    use_pauli = input().strip().lower() == 'y'
+
+    print("Computing Quantum Kernel...")
+    q_kernel = compute_quantum_kernel_matrix(data, use_pauli=use_pauli)
+
+    print("Computing Classical RBF Kernel...")
+    c_kernel = rbf_kernel(data, gamma=0.001)
+
+    print("Plotting persistence diagrams and kernels...")
+    plot_all(data, q_kernel, c_kernel)
+
 
 if __name__ == "__main__":
     main()
