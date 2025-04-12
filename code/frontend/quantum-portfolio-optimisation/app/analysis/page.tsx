@@ -16,6 +16,7 @@ import {
 } from 'chart.js';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 import axios from 'axios';
+import MiniChart from "./MiniChart";
 
 interface TokenInfo {
   name: string;
@@ -26,11 +27,15 @@ interface TokenInfo {
 
 type TokenMap = Record<string, TokenInfo>;
 
+
 const FullGraphs: React.FC = () => {
   // Responsive layout state
   const [isMobile, setIsMobile] = useState(false);
   const [tokens, setTokens] = useState<TokenMap>({});
   const [error, setError] = useState<string | null>(null);
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [lastSupply, setLastSupply] = useState<Record<string, number>>({});
+
 
   // Monte Carlo Simulation state
   const [useQuantumRNG, setUseQuantumRNG] = useState(false);
@@ -57,28 +62,47 @@ const FullGraphs: React.FC = () => {
 
     const fetchTokens = async () => {
       try {
-        const res = await axios.get('http://127.0.0.1:8000/tokens/supply');
+        const res = await axios.get<Record<string, TokenInfo>>("http://127.0.0.1:8000/tokens/supply");
         setTokens(res.data);
         setError(null);
+        const timestamp = new Date().toLocaleTimeString();
+        const newDataPoint: Record<string, any> = { time: timestamp };
+        
+        for (const [symbol, token] of Object.entries(res.data)) {
+          const current = Number(token.totalSupply ?? "0");
+        
+          const prev =
+            chartData.length > 0 && chartData[chartData.length - 1][symbol + "_raw"]
+              ? chartData[chartData.length - 1][symbol + "_raw"]
+              : current;
+        
+          const change = prev !== 0 ? ((current - prev) / prev) * 100 : 0;
+        
+          newDataPoint[symbol] = parseFloat(change.toFixed(4));
+          newDataPoint[symbol + "_raw"] = current;            
+        }
+        
+        setChartData((prev) => [...prev.slice(-9), newDataPoint]);
+        
       } catch (err) {
-        setError('⚠️ 데이터를 불러오는 중 오류가 발생했습니다.');
+        setError("⚠️ 데이터를 불러오는 중 오류가 발생했습니다.");
         setTokens({});
-        console.error('❌ API 오류:', err);
+        console.error("❌ API 오류:", err);
       }
     };
-
+  
     fetchTokens();
     const interval = setInterval(fetchTokens, 5000);
     window.addEventListener("resize", handleResize);
     handleResize();
-
+  
     return () => {
       clearInterval(interval);
       window.removeEventListener("resize", handleResize);
     };
-  }, []);
+  }, [lastSupply]);
   
-  // Common responsive margins
+
   const getResponsiveMargins = (): React.CSSProperties =>
       isMobile ? { margin: '0 1rem' } : {};
 
@@ -437,14 +461,38 @@ const FullGraphs: React.FC = () => {
               </a>
             </div>
           </div>
-
-          {/* Live Data Section (Placeholder) */}
-          <h2 id="livedata" className="scroll-target" style={{ ...styles.heading, ...getResponsiveMargins() }}>
-            Live Data
-          </h2>
+          <h2
+          id="livedata"
+          className="scroll-target"
+          style={{ ...styles.heading, ...getResponsiveMargins() }}
+        >
+          Live Data
+        </h2>
           <div style={{ ...styles.graphArea, ...getResponsiveMargins() }}>
-            {/* Example: You might include a live updating table or chart here */}
-          </div>
+  {error && <p className="text-red-500">{error}</p>}
+  {!error && Object.keys(tokens).length === 0 && (
+    <p>📡 Loading token info...</p>
+  )}
+  {Object.entries(tokens).map(([symbol, token]) => (
+  <div
+    key={symbol}
+    className="flex flex-col md:flex-row gap-4 mb-6 p-4 border border-white/20 rounded-xl bg-white/10"
+  >
+    {/* 왼쪽 정보 */}
+    <div className="space-y-2 md:w-1/2">
+  <p><b>Name:</b> {token.name}</p>
+  <p><b>Symbol:</b> {token.symbol}</p>
+  <p><b>Decimals:</b> {token.decimals}</p>
+  <p><b>Total Supply:</b> {BigInt(token.totalSupply ?? "0").toLocaleString()}</p>
+</div>
+
+<div className="md:w-1/2 bg-white/5 rounded-md p-2">
+  <p><b>Total supply</b></p>
+  <MiniChart token={symbol} data={chartData} />
+</div>
+  </div>
+))}
+</div>
         </div>
       </>
   );

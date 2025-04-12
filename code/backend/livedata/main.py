@@ -58,5 +58,5 @@ def get_multi_token_supply():
         parsed = json.loads(result.stdout.decode().strip())
         return parsed
     except Exception as e:
-        print("❌ JSON 파싱 실패:", e)
+        print("❌ Failed to parse JSON:", e)
         return {"error": "invalid response"}
