@@ -1,20 +1,79 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.special import erfinv
 
-# Define a default pricing model: European Call Option payoff
+# -----------------------------------------------------
+# Qiskit Imports for Quantum RNG & Amplitude Estimation
+# -----------------------------------------------------
+from qiskit import QuantumCircuit
+from qiskit_aer import Aer
+from qiskit_algorithms import AmplitudeEstimation
+# from qiskit_finance.applications.estimation import EuropeanCallPricing
+from qiskit_finance.applications.estimation import EuropeanCallExpectedValue
+from qiskit_finance.circuit.library import LogNormalDistribution
+from qiskit.primitives import Sampler
+
+
+# -----------------------------
+# Classical Pricing Model
+# -----------------------------
 def european_call_payoff(S, strike):
+    """European Call Option payoff function."""
     return np.maximum(S - strike, 0)
 
+
+# -------------------------------------------------------------
+# Quantum Random Number Generation (via Qiskit/Qasm Simulator)
+# -------------------------------------------------------------
+def quantum_random_normal(num_samples, num_qubits=16):
+    """
+    Generate 'num_samples' from a normal distribution using a quantum RNG.
+
+    Procedure:
+      1. Create a circuit that puts 'num_qubits' into superposition.
+      2. Measure to obtain bitstrings.
+      3. Convert each bitstring to an integer and normalize into [0, 1).
+      4. Transform uniform values to a normal distribution using the inverse error function.
+
+    The inverse transformation applied is:
+         x = sqrt(2) * erfinv(2u - 1)
+    """
+    qc = QuantumCircuit(num_qubits, num_qubits)
+    qc.h(range(num_qubits))
+    qc.measure(range(num_qubits), range(num_qubits))
+
+    backend = Aer.get_backend('qasm_simulator')
+    # Run circuit with a number of shots equal to num_samples
+    job = backend.run(qc, shots=num_samples, memory=True)
+    result = job.result()
+    # get_memory returns a list of bitstring results (one per shot)
+    memory = result.get_memory(qc)
+
+    # Convert bitstrings to integers and then normalize to [0, 1)
+    random_ints = [int(bits, 2) for bits in memory]
+    uniform_values = np.array(random_ints) / float(2**num_qubits)
+
+    # Transform uniform distribution to normal using inverse error function.
+    normal_values = np.sqrt(2) * erfinv(2 * uniform_values - 1)
+    return normal_values
+
+
+def quantum_random_increments(num_samples, dt, num_qubits=16):
+    """
+    Generate 'num_samples' of normally distributed increments,
+    scaled by sqrt(dt), using the quantum RNG.
+    """
+    normals = quantum_random_normal(num_samples, num_qubits=num_qubits)
+    return normals * np.sqrt(dt)
+
+
+# -------------------------------------------------------------
+# Quantum Monte Carlo Simulator: Classical & QAE Methods
+# -------------------------------------------------------------
 class QuantumMonteCarloSimulator:
     def __init__(self,
-                 S0=100,        # Initial asset price
-                 r=0.05,        # Risk-free rate
-                 sigma=0.2,     # Volatility
-                 T=1.0,         # Time to maturity (years)
-                 strike=100,    # Strike price for option payoff
-                 steps=252,     # Number of time steps (e.g., daily steps in a year)
-                 paths=10000,   # Number of simulated paths for classical simulation
-                 pricing_model=european_call_payoff):
+                 S0=100, r=0.05, sigma=0.2, T=1.0, strike=100,
+                 steps=252, paths=10000, pricing_model=european_call_payoff):
         self.S0 = S0
         self.r = r
         self.sigma = sigma
@@ -25,82 +84,43 @@ class QuantumMonteCarloSimulator:
         self.pricing_model = pricing_model
 
     def _get_rng_increments(self, size, dt, rng_type='classical'):
-        """Generate random increments (dW) using classical or mock quantum RNG."""
         if rng_type == 'classical':
             return np.random.normal(0, np.sqrt(dt), size=size)
         elif rng_type == 'quantum':
-            # Here we mock a quantum RNG – in reality,
-            # you could plug in a true quantum RNG API.
-            print("Using mock quantum RNG for generating random numbers.")
-            return np.random.normal(0, np.sqrt(dt), size=size)
+            return quantum_random_increments(num_samples=size, dt=dt)
         else:
-            raise ValueError("RNG type must be either 'classical' or 'quantum'.")
+            raise ValueError("rng_type must be either 'classical' or 'quantum'.")
 
-    def simulate_paths(self, rng_type='classical', use_quantum_amp=False):
-        """
-        Simulate asset price paths under geometric Brownian motion.
-
-        If use_quantum_amp is True, we mimic the quadratic speed-up of quantum amplitude
-        estimation by reducing the number of paths (roughly sqrt(paths)).
-        """
-        if use_quantum_amp:
-            # Quantum amplitude estimation (QAE) provides quadratic speed-up,
-            # so we mimic that by reducing the number of paths.
-            effective_paths = int(np.sqrt(self.paths))
-            print(f"Using quantum amplitude estimation mock: {effective_paths} paths (versus {self.paths} classical paths)")
-        else:
-            effective_paths = self.paths
-
+    def simulate_paths(self, rng_type='classical'):
         dt = self.T / self.steps
-        time_grid = np.linspace(0, self.T, self.steps+1)
-        # Initialize paths: rows are different trajectories
-        paths = np.zeros((effective_paths, self.steps+1))
+        time_grid = np.linspace(0, self.T, self.steps + 1)
+        paths = np.zeros((self.paths, self.steps + 1))
         paths[:, 0] = self.S0
 
-        # Simulate paths step by step using the Euler method for GBM
         for t in range(1, self.steps + 1):
-            dW = self._get_rng_increments(size=effective_paths, dt=dt, rng_type=rng_type)
-            paths[:, t] = paths[:, t-1] * np.exp((self.r - 0.5 * self.sigma**2)*dt + self.sigma * dW)
-
+            dW = self._get_rng_increments(size=self.paths, dt=dt, rng_type=rng_type)
+            paths[:, t] = paths[:, t - 1] * np.exp((self.r - 0.5 * self.sigma**2) * dt + self.sigma * dW)
         return time_grid, paths
 
     def compute_option_price(self, terminal_prices):
-        """
-        Computes the discounted expected payoff for the option using the supplied pricing model.
-        """
         payoffs = self.pricing_model(terminal_prices, self.strike)
-        discounted_payoff = np.exp(-self.r * self.T) * payoffs
-        estimated_price = np.mean(discounted_payoff)
-        return estimated_price, discounted_payoff
+        discounted_payoffs = np.exp(-self.r * self.T) * payoffs
+        estimated_price = np.mean(discounted_payoffs)
+        return estimated_price, discounted_payoffs
 
-    def run_simulation(self, rng_type='classical', use_quantum_amp=False, visualize=True):
-        """
-        Run the Monte Carlo simulation using either classical or quantum RNG,
-        and using quantum amplitude estimation mock if desired.
-        It returns the estimated option price and produces visualizations.
-        """
-        # Simulate asset price paths
-        time_grid, paths = self.simulate_paths(rng_type=rng_type, use_quantum_amp=use_quantum_amp)
+    def run_classical_simulation(self, rng_type='classical', visualize=True):
+        time_grid, paths = self.simulate_paths(rng_type=rng_type)
         terminal_prices = paths[:, -1]
-
-        # Compute the option price from simulated terminal prices
-        estimated_price, discounted_payoffs = self.compute_option_price(terminal_prices)
-
-        print("Estimated Option Price: {:.4f}".format(estimated_price))
-
+        estimated_price, _ = self.compute_option_price(terminal_prices)
+        print("Estimated Option Price (Classical MC with {} RNG): {:.4f}".format(rng_type, estimated_price))
         if visualize:
             self.visualize_simulation(time_grid, paths, terminal_prices, estimated_price)
-
         return estimated_price
 
     def visualize_simulation(self, time_grid, paths, terminal_prices, estimated_price):
-        """
-        Visualize a subset of asset paths and a histogram of terminal asset prices with the estimated option price.
-        """
-        num_paths_to_plot = min(10, paths.shape[0])  # plot up to 10 trajectories
-        plt.figure(figsize=(14,6))
+        num_paths_to_plot = min(10, paths.shape[0])
+        plt.figure(figsize=(14, 6))
 
-        # Plot sample asset paths over time
         plt.subplot(1, 2, 1)
         for i in range(num_paths_to_plot):
             plt.plot(time_grid, paths[i, :], lw=1)
@@ -108,7 +128,6 @@ class QuantumMonteCarloSimulator:
         plt.ylabel("Asset Price")
         plt.title("Sample Asset Paths")
 
-        # Plot histogram of terminal asset prices
         plt.subplot(1, 2, 2)
         plt.hist(terminal_prices, bins=30, alpha=0.75, edgecolor='black')
         plt.xlabel("Terminal Asset Price")
@@ -121,14 +140,61 @@ class QuantumMonteCarloSimulator:
         plt.tight_layout(rect=[0, 0.03, 1, 0.95])
         plt.show()
 
-# -------------------------------------------------------------------------
-# Example usage: run both classical and quantum amplitude estimation mock runs
+
+    def run_quantum_amplitude_estimation(self, num_eval_qubits=3):
+        try:
+            num_qubits = 3  # Can be adjusted for precision vs. performance
+
+            mu = np.log(self.S0) + (self.r - 0.5 * self.sigma ** 2) * self.T
+            sigma_tilde = self.sigma * np.sqrt(self.T)
+            bounds = (0, 2 * self.S0)
+
+            # Step 1: Create a LogNormalDistribution to represent the terminal asset price
+            distribution = LogNormalDistribution(
+                num_qubits=num_qubits,
+                mu=mu,
+                sigma=sigma_tilde,
+                bounds=bounds
+            )
+
+            # Step 2: Set up the European call option pricing problem
+            european_call = EuropeanCallExpectedValue(
+                distribution=distribution,
+                strike_price=self.strike,
+                rescaling_factor=0.25 * bounds[1] ** 2,
+                bounds=bounds
+            )
+
+            # Step 3: Run QAE
+            sampler = Sampler()
+            ae = AmplitudeEstimation(
+                num_eval_qubits=num_eval_qubits,
+                problem=european_call,
+                sampler=sampler
+            )
+            result = ae.estimate()
+            estimated_price = european_call.interpret(result)
+
+            print("Estimated Option Price (Quantum Amplitude Estimation): {:.4f}".format(estimated_price))
+            return estimated_price, result
+
+        except Exception as e:
+            print("Error during quantum amplitude estimation.")
+            raise e
+
+
+
+# -----------------------------
+# Example Usage
+# -----------------------------
 if __name__ == "__main__":
-    # Instantiate the simulator with default parameters and pricing model.
-    simulator = QuantumMonteCarloSimulator()
+    simulator = QuantumMonteCarloSimulator(paths=1000)
 
-    print("=== Running Classical Monte Carlo Simulation ===")
-    classical_price = simulator.run_simulation(rng_type='classical', use_quantum_amp=False, visualize=True)
+    print("=== Running Classical Monte Carlo Simulation with Classical RNG ===")
+    simulator.run_classical_simulation(rng_type='classical', visualize=True)
 
-    print("\n=== Running Quantum Monte Carlo Simulation (Mock QAE) ===")
-    quantum_price = simulator.run_simulation(rng_type='quantum', use_quantum_amp=True, visualize=True)
+    print("\n=== Running Classical Monte Carlo Simulation with Quantum RNG ===")
+    simulator.run_classical_simulation(rng_type='quantum', visualize=True)
+
+    print("\n=== Running Quantum Amplitude Estimation using Qiskit ===")
+    simulator.run_quantum_amplitude_estimation(num_eval_qubits=3)
