@@ -143,6 +143,7 @@ const Chatbot: React.FC = () => {
         </button>
       </div>
     </div>
+    </div>
   );
 };
 
