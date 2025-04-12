@@ -39,6 +39,50 @@ class DummySampler:
         result = job.result()
         return result
 
+
+def plot_qae_result(result):
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    samples = result.samples
+
+    try:
+        # Case: samples is a dict of {value: probability}
+        if isinstance(samples, dict):
+            print("Raw QAE samples (dict format):")
+            for val, prob in samples.items():
+                print(f"  Value: {val:.6f}, Probability: {prob:.6f}")
+
+            values = np.array(list(samples.keys()), dtype=float)
+            probabilities = np.array(list(samples.values()), dtype=float)
+
+        else:
+            raise ValueError("Unsupported samples format. Got: " + str(type(samples)))
+
+        # Sort values for clean plotting
+        sort_idx = np.argsort(values)
+        values = values[sort_idx]
+        probabilities = probabilities[sort_idx]
+
+        # Plot the distribution
+        plt.figure(figsize=(10, 6))
+        plt.bar(values, probabilities, width=0.02, alpha=0.7, edgecolor='black')
+        plt.axvline(result.estimation, color='red', linestyle='--', linewidth=2,
+                    label=f"Estimate: {result.estimation:.4f}")
+        plt.xlabel("Estimated Value")
+        plt.ylabel("Probability")
+        plt.title("Quantum Amplitude Estimation Result")
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
+
+    except Exception as e:
+        print("Error while plotting QAE result:", e)
+        print("Type of samples:", type(samples))
+        print("Contents:", samples)
+
+
 # -----------------------------
 # Classical Pricing Model
 # -----------------------------
@@ -165,6 +209,7 @@ class QuantumMonteCarloSimulator:
         plt.tight_layout(rect=[0, 0.03, 1, 0.95])
         plt.show()
 
+
     def run_quantum_amplitude_estimation(self, num_eval_qubits=3):
         try:
             num_qubits = 3
@@ -202,8 +247,11 @@ class QuantumMonteCarloSimulator:
 
             result = ae.estimate(problem)
             estimated_price = result.estimation
-
             print("Estimated Option Price (Quantum Amplitude Estimation): {:.4f}".format(estimated_price))
+
+            # 📊 Plot the likelihood distribution
+            plot_qae_result(result)
+
             return estimated_price, result
 
         except Exception as e:
