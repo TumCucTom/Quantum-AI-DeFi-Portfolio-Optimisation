@@ -174,9 +174,16 @@ class QMCSimulator:
         result = qae.estimate(problem)
         # Optionally visualize the quasi distribution of the full QAE circuit.
         if visualize:
+            # Instead of adding a new classical register, use the circuit's existing clbits.
             qae_circuit = problem.state_preparation.copy()
-            qae_circuit.add_register(ClassicalRegister(qae_circuit.num_qubits))
-            qae_circuit.measure(range(qae_circuit.num_qubits), range(qae_circuit.num_qubits))
+
+            # Manually attach a new classical register and measure
+            num_qubits = qae_circuit.num_qubits
+            creg = ClassicalRegister(num_qubits)
+            qae_circuit.add_register(creg)
+            qae_circuit.measure(range(num_qubits), range(num_qubits))
+
+            # Now run the circuit using the sampler.
             qae_result = sampler.run([qae_circuit]).result().quasi_dists[0]
 
             keys = list(qae_result.keys())

@@ -11,7 +11,7 @@ export default function Home() {
 
   useEffect(() => {
     const handleResize = () => {
-      setIsDesktop(window.innerWidth >= 1024); // Tailwind 기준 md: 768, lg: 1024
+      setIsDesktop(window.innerWidth >= 1024); // Tailwind 기준 lg
     };
 
     handleResize();
@@ -54,10 +54,17 @@ export default function Home() {
       <div className="relative z-10 flex flex-col items-center justify-start px-6 h-[calc(100vh-60px)]">
         {/* Title + Subtitle */}
         <div className="text-center mt-16">
-          <h1 className="quantum-title text-7xl md:text-9xl font-bold mb-4">
-            Cert<span className="text-orange-600">AI</span>nty Quantum
-          </h1>
-          <p className="text-l mt-16 text-blue-200/80">
+        <h1 className="text-[2.75rem] sm:text-6xl md:text-7xl lg:text-9xl font-bold mb-4 !text-[2.75rem] leading-[3.5rem] sm:leading-normal text-center">
+  Cert<span className="text-orange-600">AI</span>nty
+  <br className="block sm:hidden" />
+  <span className="sm:inline hidden"> </span>
+  Quantum
+</h1>
+
+
+
+
+          <p className="text-base sm:text-lg md:text-xl mt-8 text-blue-200/80">
             Quantum enhanced portfolio optimisation tools – made easy with AI
           </p>
         </div>
