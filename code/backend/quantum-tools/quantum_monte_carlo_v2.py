@@ -9,7 +9,7 @@ from qiskit import QuantumCircuit
 from qiskit_aer import Aer
 from qiskit_algorithms import AmplitudeEstimation
 # from qiskit_finance.applications.estimation import EuropeanCallPricing
-from qiskit_finance.applications.estimation import EuropeanCallExpectedValue
+from qiskit_finance.applications import EuropeanCallPricing
 from qiskit_finance.circuit.library import LogNormalDistribution
 from qiskit.primitives import Sampler
 
@@ -158,11 +158,9 @@ class QuantumMonteCarloSimulator:
             )
 
             # Step 2: Set up the European call option pricing problem
-            european_call = EuropeanCallExpectedValue(
+            european_call = EuropeanCallPricing(
                 distribution=distribution,
-                strike_price=self.strike,
-                rescaling_factor=0.25 * bounds[1] ** 2,
-                bounds=bounds
+                strike_price=self.strike
             )
 
             # Step 3: Run QAE
