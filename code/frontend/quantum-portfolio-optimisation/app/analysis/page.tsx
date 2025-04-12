@@ -63,12 +63,48 @@ const FullGraphs: React.FC = () => {
     });
   };
 
+  // Handler for default run simulation button (Monte Carlo)
+  const handleRunDefaultSimulation = () => {
+    // Reset Monte Carlo settings to defaults
+    setUseQuantumRNG(false);
+    setUploadedFile(null);
+    setUseUploaded(false);
+    setSimQubits(3);
+    setMaxEvalQubits(6);
+    setNormalise(false);
+
+    // Immediately run simulation with default values
+    console.log("Run simulation with defaults", {
+      useQuantumRNG: false,
+      uploadedFile: null,
+      useUploaded: false,
+      simQubits: 3,
+      maxEvalQubits: 6,
+      normalise: false,
+    });
+  };
+
   // Handler for run TDA analysis button
   const handleRunTda = () => {
     console.log("Run TDA Analysis clicked", {
       tdaFile,
       tdaMethod,
       tdaUsePauli,
+    });
+  };
+
+  // Handler for default run TDA analysis button
+  const handleRunDefaultTda = () => {
+    // Reset TDA settings to defaults
+    setTdaFile(null);
+    setTdaMethod("loop");
+    setTdaUsePauli(false);
+
+    // Immediately run TDA analysis with default values
+    console.log("Run TDA Analysis with defaults", {
+      tdaFile: null,
+      tdaMethod: "loop",
+      tdaUsePauli: false,
     });
   };
 
@@ -81,19 +117,26 @@ const FullGraphs: React.FC = () => {
           <h2
               id="montecarlo"
               className="scroll-target"
-              style={{...styles.heading, ...getResponsiveMargins()}}
+              style={{ ...styles.heading, ...getResponsiveMargins() }}
           >
             Quantum Monte Carlo Simulations
           </h2>
-          <div style={{...styles.graphArea, ...getResponsiveMargins()}}>
+          <div style={{ ...styles.graphArea, ...getResponsiveMargins() }}>
             {/* Monte Carlo Controls Section */}
             <div style={styles.controlsContainer}>
-              <button style={styles.runButton} onClick={handleRunSimulation}>
-                Run Simulation
-              </button>
+              {/* Buttons container for defaults & normal run */}
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button style={styles.defaultButton} onClick={handleRunDefaultSimulation}>
+                  Defaults & Run
+                </button>
+                <button style={styles.runButton} onClick={handleRunSimulation}>
+                  Run Simulation
+                </button>
+              </div>
+
               <div style={styles.controlGroup}>
                 <label style={styles.controlLabel}>Upload CSV File:</label>
-                <input type="file" accept=".csv" onChange={handleFileChange}/>
+                <input type="file" accept=".csv" onChange={handleFileChange} />
               </div>
 
               {/* Use Uploaded Data Toggle */}
@@ -162,7 +205,7 @@ const FullGraphs: React.FC = () => {
 
             {/* Monte Carlo Link Section */}
             <div style={styles.linkContainer}>
-              <a href="/snippets" style={styles.snippetLink}>
+              <a href="/snippet" style={styles.snippetLink}>
                 See the code explained with |Jesko|^2
               </a>
             </div>
@@ -172,20 +215,25 @@ const FullGraphs: React.FC = () => {
           <h2
               id="tda"
               className="scroll-target"
-              style={{...styles.heading, ...getResponsiveMargins()}}
+              style={{ ...styles.heading, ...getResponsiveMargins() }}
           >
             Quantum Topological Data Analysis (TDA)
           </h2>
-          <div style={{...styles.graphArea, ...getResponsiveMargins()}}>
+          <div style={{ ...styles.graphArea, ...getResponsiveMargins() }}>
             {/* TDA Controls */}
             <div style={styles.controlsContainer}>
-              {/* Run TDA Analysis Button */}
-              <button style={styles.runButton} onClick={handleRunTda}>
-                Run TDA Analysis
-              </button>
+              {/* Buttons container for defaults & normal run */}
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button style={styles.defaultButton} onClick={handleRunDefaultTda}>
+                  Defaults & Run
+                </button>
+                <button style={styles.runButton} onClick={handleRunTda}>
+                  Run TDA Analysis
+                </button>
+              </div>
               <div style={styles.controlGroup}>
                 <label style={styles.controlLabel}>Upload CSV File:</label>
-                <input type="file" accept=".csv" onChange={handleTdaFileChange}/>
+                <input type="file" accept=".csv" onChange={handleTdaFileChange} />
               </div>
               <div style={styles.controlGroup}>
                 <label style={styles.controlLabel}>Data Source:</label>
@@ -227,7 +275,7 @@ const FullGraphs: React.FC = () => {
               </div>
             </div>
             <div style={styles.linkContainer}>
-              <a href="/snippets" style={styles.snippetLink}>
+              <a href="/snippet" style={styles.snippetLink}>
                 See the code explained with |Jesko|^2
               </a>
             </div>
@@ -237,11 +285,11 @@ const FullGraphs: React.FC = () => {
           <h2
               id="livedata"
               className="scroll-target"
-              style={{...styles.heading, ...getResponsiveMargins()}}
+              style={{ ...styles.heading, ...getResponsiveMargins() }}
           >
             Live Data
           </h2>
-          <div style={{...styles.graphArea, ...getResponsiveMargins()}}>
+          <div style={{ ...styles.graphArea, ...getResponsiveMargins() }}>
             {/* <TransferTable /> */}
           </div>
         </div>
@@ -282,6 +330,16 @@ const styles: { [key: string]: React.CSSProperties } = {
   runButton: {
     padding: '0.75rem 1.5rem',
     backgroundColor: '#3182ce',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '1rem',
+    fontWeight: 600,
+  },
+  defaultButton: {
+    padding: '0.75rem 1.5rem',
+    backgroundColor: '#38a169',
     color: '#fff',
     border: 'none',
     borderRadius: '8px',
