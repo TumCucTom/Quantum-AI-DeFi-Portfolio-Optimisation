@@ -18,17 +18,31 @@ const Chatbot: React.FC = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentId, setCurrentId] = useState<number>(1);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
+  const handleSend = async () => {
+  if (!input.trim()) return;
 
-    const userMessage: Message = { sender: 'user', text: input };
+  const userMessage: Message = { sender: 'user', text: input };
+  const thinkingMessage: Message = { sender: 'AI Assistant', text: 'Thinking ...' };
+  setMessages((prev) => [...prev, userMessage]);
+
+  try {
+    const res = await fetch('http://localhost:3002/quantum/groq', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ prompt: input }),
+    });
+
+    const data = await res.json();
+
     const aiMessage: Message = {
       sender: 'AI Assistant',
-      text: "This is a sample response from Supremacy AI 🤖",
+      text: data.response || 'Something went wrong!',
     };
 
     if (messages.length === 0) {
-      const newTitle = input.length > 40 ? input.slice(0, 40) + "..." : input;
+      const newTitle = input.length > 40 ? input.slice(0, 40) + '...' : input;
       const newConversation: Conversation = {
         title: newTitle,
         messages: [userMessage, aiMessage],
@@ -42,9 +56,18 @@ const Chatbot: React.FC = () => {
       }
     }
 
-    setMessages([...messages, userMessage, aiMessage]);
+    setMessages((prev) => [...prev, aiMessage]);
     setInput('');
-  };
+  } catch (error) {
+    console.error('Error contacting backend:', error);
+    const errorMsg: Message = {
+      sender: 'AI Assistant',
+      text: 'Failed to get response from the server.',
+    };
+    setMessages((prev) => [...prev, errorMsg]);
+  }
+};
+
 
   const handleNewChat = () => {
     setMessages([]);
