@@ -146,7 +146,6 @@ const FullChatbot: React.FC = () => {
         </div>
       </div>
     </div>
-    </div>
   );
 };
 
