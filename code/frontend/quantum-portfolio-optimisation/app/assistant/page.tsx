@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import '../globals.css';
 
 interface Message {
@@ -19,55 +20,54 @@ const Chatbot: React.FC = () => {
   const [currentId, setCurrentId] = useState<number>(1);
 
   const handleSend = async () => {
-  if (!input.trim()) return;
+    if (!input.trim()) return;
 
-  const userMessage: Message = { sender: 'user', text: input };
-  const thinkingMessage: Message = { sender: 'AI Assistant', text: 'Thinking ...' };
-  setMessages((prev) => [...prev, userMessage]);
+    const userMessage: Message = { sender: 'user', text: input };
+    const thinkingMessage: Message = { sender: 'AI Assistant', text: 'Thinking ...' };
+    setMessages((prev) => [...prev, userMessage]);
 
-  try {
-    const res = await fetch('http://localhost:3002/quantum/groq', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ prompt: input }),
-    });
+    try {
+      const res = await fetch('http://localhost:3002/quantum/groq', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt: input }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    const aiMessage: Message = {
-      sender: 'AI Assistant',
-      text: data.response || 'Something went wrong!',
-    };
-
-    if (messages.length === 0) {
-      const newTitle = input.length > 40 ? input.slice(0, 40) + '...' : input;
-      const newConversation: Conversation = {
-        title: newTitle,
-        messages: [userMessage, aiMessage],
+      const aiMessage: Message = {
+        sender: 'AI Assistant',
+        text: data.response || 'Something went wrong!',
       };
-      setConversations([newConversation, ...conversations]);
-    } else {
-      const updated = [...conversations];
-      if (updated[0]) {
-        updated[0].messages = [...messages, userMessage, aiMessage];
-        setConversations(updated);
+
+      if (messages.length === 0) {
+        const newTitle = input.length > 40 ? input.slice(0, 40) + '...' : input;
+        const newConversation: Conversation = {
+          title: newTitle,
+          messages: [userMessage, aiMessage],
+        };
+        setConversations([newConversation, ...conversations]);
+      } else {
+        const updated = [...conversations];
+        if (updated[0]) {
+          updated[0].messages = [...messages, userMessage, aiMessage];
+          setConversations(updated);
+        }
       }
+
+      setMessages((prev) => [...prev, aiMessage]);
+      setInput('');
+    } catch (error) {
+      console.error('Error contacting backend:', error);
+      const errorMsg: Message = {
+        sender: 'AI Assistant',
+        text: 'Failed to get response from the server.',
+      };
+      setMessages((prev) => [...prev, errorMsg]);
     }
-
-    setMessages((prev) => [...prev, aiMessage]);
-    setInput('');
-  } catch (error) {
-    console.error('Error contacting backend:', error);
-    const errorMsg: Message = {
-      sender: 'AI Assistant',
-      text: 'Failed to get response from the server.',
-    };
-    setMessages((prev) => [...prev, errorMsg]);
-  }
-};
-
+  };
 
   const handleNewChat = () => {
     setMessages([]);
@@ -77,6 +77,9 @@ const Chatbot: React.FC = () => {
     setMessages(conversations[index].messages);
   };
 
+  // @ts-ignore
+  // @ts-ignore
+  // @ts-ignore
   return (
     <div className="flex flex-col md:flex-row w-full h-[95vh] p-3 gap-3">
       {/* Sidebar */}
@@ -115,7 +118,13 @@ const Chatbot: React.FC = () => {
               }}
             >
               <strong>{msg.sender === 'user' ? 'You' : 'AI Assistant'}</strong>
-              <p style={{ margin: '6px 0 0' }}>{msg.text}</p>
+              <div style={{ margin: '6px 0 0' }}>
+                {msg.sender === 'AI Assistant' ? (
+                  <ReactMarkdown>{msg.text}</ReactMarkdown>
+                ) : (
+                  <p>{msg.text}</p>
+                )}
+              </div>
             </div>
           ))}
         </div>
