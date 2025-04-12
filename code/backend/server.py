@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
-from dotenv import load_dotenv
 import os
 
 from demo_tools.demo import twap_slicing
@@ -9,11 +8,37 @@ from demo_tools.demo import vwap_slicing
 from demo_tools.demo import quantum_order_routing
 from demo_tools.demo import quantum_latency_costs
 
-
+from endpoints.quantum_TDA import quantum_tda_endpoint
+from endpoints.monte_carlo import quantum_monte_carlo_endpoint
 
 app = Flask(__name__)
 CORS(app)
+
 # === Routes ===
+@app.route("/api/quantum_tda", methods=["POST"])
+def quantum_tda_api():
+    try:
+        # Try to get JSON from the request; if none, input_data remains None
+        input_data = request.get_json(silent=True)
+        result = quantum_tda_endpoint(input_data)
+        return jsonify(result)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/quantum_mc", methods=["GET", "POST"])
+def simulate():
+    try:
+        if request.method == "POST":
+            input_data = request.get_json()
+        else:
+            input_data = None  # Use defaults
+
+        result = quantum_monte_carlo_endpoint(input_data)
+        return jsonify(result)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/quantum/order-slicing", methods=["POST"])
 def quantum_order_slicing():
@@ -119,5 +144,7 @@ def brian_auto_route():
 
     except requests.exceptions.RequestException as e:
         return jsonify({"error": f"Brian request failed: {str(e)}"}), 500
+
+
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=3003, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
