@@ -82,7 +82,7 @@ const TOKENS = [
 
     console.log(JSON.stringify(decodedTokens));
   } catch (err) {
-    console.error('❌ 실행 중 오류 발생:', err.message);
+    console.error('Error occured:', err.message);
     process.exit(1);
   }
 })();

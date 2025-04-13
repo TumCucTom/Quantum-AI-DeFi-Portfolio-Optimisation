@@ -6,6 +6,7 @@ import { PriceChart } from "./widgets/price-chart";
 import { PortfolioAllocation } from "./widgets/portfolio-allocation";
 import { MarketSentiment } from "./widgets/market-sentiment";
 import { TradeHistory } from "./widgets/trade-history";
+import { CrossChainSwapChart } from "./widgets/cross-chain";
 
 interface PanelProps {
   id: string;
@@ -15,46 +16,59 @@ interface PanelProps {
   onRemove: () => void;
 }
 
+const widgetTitles: Record<string, string> = {
+  "cross-chain": "Cross Chain Token Swap",
+  "market-sentiment": "Market Sentiment",
+  "portfolio-allocation": "Portfolio Allocation",
+  "price-chart": "Price Chart",
+  "trade-history": "Trade History",
+  "ai-chat": "AI Chat",
+};
+
+
 export function Panel({ id, widgetType, gridColumn, gridRow, onRemove }: PanelProps) {
-  // Render the appropriate widget based on type
-  const renderWidget = () => {
+  // If a matching title isn't found, default to the widgetType or another fallback
+  const panelTitle = widgetTitles[widgetType] || widgetType;
+
+  // Helper function to render the appropriate widget
+  function renderWidget() {
     switch (widgetType) {
-      case "price-chart":
-        return <PriceChart />;
-      case "portfolio-allocation":
-        return <PortfolioAllocation />;
+      case "Cross chain swap":
+        return <CrossChainSwapChart />;
       case "market-sentiment":
         return <MarketSentiment />;
+      case "portfolio-allocation":
+        return <PortfolioAllocation />;
+      case "price-chart":
+        return <PriceChart />;
       case "trade-history":
         return <TradeHistory />;
       default:
-        return <div className="flex items-center justify-center h-full">Widget type not supported</div>;
+        return <div>Unknown Widget</div>;
     }
-  };
+  }
 
   return (
     <div
-      className="relative bg-blue-900/20 backdrop-blur-sm border border-blue-400/20 rounded-lg overflow-hidden"
       style={{ gridColumn, gridRow }}
+      className="bg-gray-900 border border-gray-700 rounded-lg overflow-hidden flex flex-col"
     >
       {/* Panel header */}
-      <div className="p-3 border-b border-blue-400/20 flex justify-between items-center bg-blue-900/30">
-        <h3 className="text-sm font-medium text-blue-100">
-          {widgetType === "price-chart" && "Price Chart"}
-          {widgetType === "portfolio-allocation" && "Portfolio Allocation"}
-          {widgetType === "market-sentiment" && "Market Sentiment"}
-          {widgetType === "trade-history" && "Trade History"}
-        </h3>
-        <button 
+      <div className="p-2 bg-gray-800 flex items-center justify-between">
+        <div className="font-medium text-white">
+          {/* Use our panelTitle variable here */}
+          {panelTitle}
+        </div>
+        <button
           onClick={onRemove}
-          className="p-1 rounded-full hover:bg-blue-800/40 text-blue-300/60 hover:text-blue-100 transition-colors"
+          className="text-gray-400 hover:text-gray-200 transition-colors"
         >
-          <X size={16} />
+          ✕
         </button>
       </div>
 
       {/* Panel content */}
-      <div className="p-4 h-[calc(100%-40px)]">
+      <div className="p-4 flex-grow">
         {renderWidget()}
       </div>
     </div>
