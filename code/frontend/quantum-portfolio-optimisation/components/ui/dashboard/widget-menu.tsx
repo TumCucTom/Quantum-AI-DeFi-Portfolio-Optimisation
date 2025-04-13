@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { X, LineChart, PieChart, BarChart3, Clock } from "lucide-react";
+import { X, LineChart, PieChart, BarChart3, Clock, Repeat } from "lucide-react";
 
 interface WidgetMenuProps {
   onSelectWidget: (widgetType: string) => void;
@@ -33,6 +33,12 @@ export function WidgetMenu({ onSelectWidget, onClose }: WidgetMenuProps) {
       name: "Trade History",
       description: "Recent trades and transaction history",
       icon: <Clock className="h-10 w-10 text-blue-400" />,
+    },
+    {
+      type: "chainswapping",
+      name: "Cross chain swap with wormhole",
+      description: "Cross chain swap with wormhole",
+      icon: <Repeat className="h-10 w-10 text-blue-400" />,
     },
   ];
 

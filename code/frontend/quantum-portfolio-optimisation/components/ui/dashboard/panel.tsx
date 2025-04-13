@@ -6,6 +6,7 @@ import { PriceChart } from "./widgets/price-chart";
 import { PortfolioAllocation } from "./widgets/portfolio-allocation";
 import { MarketSentiment } from "./widgets/market-sentiment";
 import { TradeHistory } from "./widgets/trade-history";
+import { CrossChainSwapChart} from "./widgets/chainswapping"
 
 interface PanelProps {
   id: string;
@@ -27,6 +28,8 @@ export function Panel({ id, widgetType, gridColumn, gridRow, onRemove }: PanelPr
         return <MarketSentiment />;
       case "trade-history":
         return <TradeHistory />;
+      case "chainswapping":
+        return <CrossChainSwapChart/>
       default:
         return <div className="flex items-center justify-center h-full">Widget type not supported</div>;
     }
