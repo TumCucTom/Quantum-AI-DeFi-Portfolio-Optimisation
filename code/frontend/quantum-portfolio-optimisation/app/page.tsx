@@ -70,12 +70,12 @@ export default function Home() {
         </div>
 
         {/* Buttons */}
-        <div className="text-base sm:text-lg mt-16 mb-24 md:mb-32 flex flex-col md:flex-row items-center justify-center gap-6 sm:gap-10 md:gap-20 w-full max-w-6xl px-4">
-          {[
-            {
-              icon: <Bot className="h-10 w-10 text-blue-400"/>,
-              text: "Quantum Informed AI Assistant",
-              delay: "0s",
+          <div className="text-base sm:text-lg mt-20 mb-32 md:mb-40 flex flex-col md:flex-row items-center justify-center gap-6 sm:gap-10 md:gap-20 w-full max-w-6xl px-4">
+              {[
+                  {
+                      icon: <Bot className="h-10 w-10 text-blue-400"/>,
+                      text: "Quantum Informed AI Assistant",
+                      delay: "0s",
               link: "/assistant",
             },
             {

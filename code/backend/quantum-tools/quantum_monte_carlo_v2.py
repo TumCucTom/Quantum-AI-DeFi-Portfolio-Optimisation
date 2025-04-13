@@ -8,11 +8,9 @@ from scipy.special import erfinv
 from qiskit import QuantumCircuit
 from qiskit_aer import Aer
 from qiskit_algorithms import AmplitudeEstimation
-# from qiskit_finance.applications.estimation import EuropeanCallPricing
 from qiskit_finance.applications import EuropeanCallPricing
 from qiskit_finance.circuit.library import LogNormalDistribution
-from qiskit.primitives import Sampler
-
+from qiskit.providers.aer.primitives import Sampler
 
 # -----------------------------
 # Classical Pricing Model
@@ -140,7 +138,6 @@ class QuantumMonteCarloSimulator:
         plt.tight_layout(rect=[0, 0.03, 1, 0.95])
         plt.show()
 
-
     def run_quantum_amplitude_estimation(self, num_eval_qubits=3):
         try:
             num_qubits = 3  # Can be adjusted for precision vs. performance
@@ -179,7 +176,6 @@ class QuantumMonteCarloSimulator:
         except Exception as e:
             print("Error during quantum amplitude estimation.")
             raise e
-
 
 
 # -----------------------------

@@ -9,15 +9,37 @@ from demo_tools.demo import twap_slicing
 from demo_tools.demo import vwap_slicing
 from demo_tools.demo import quantum_latency_costs
 
-# Import our new quantum order routing optimizer
-from quantum_order_routing import optimize_order_routing
-
-# Load environment variables from .env file
-load_dotenv()
+from endpoints.quantum_TDA import quantum_tda_endpoint
+from endpoints.monte_carlo import quantum_monte_carlo_endpoint
 
 app = Flask(__name__)
 CORS(app)
+
 # === Routes ===
+@app.route("/api/quantum_tda", methods=["POST"])
+def quantum_tda_api():
+    try:
+        # Try to get JSON from the request; if none, input_data remains None
+        input_data = request.get_json(silent=True)
+        result = quantum_tda_endpoint(input_data)
+        return jsonify(result)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/quantum_mc", methods=["GET", "POST"])
+def simulate():
+    try:
+        if request.method == "POST":
+            input_data = request.get_json()
+        else:
+            input_data = None  # Use defaults
+
+        result = quantum_monte_carlo_endpoint(input_data)
+        return jsonify(result)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/quantum/order-slicing", methods=["POST"])
 def quantum_order_slicing():
@@ -83,10 +105,10 @@ def brian_auto_route():
         extraction_res.raise_for_status()
         extraction_data = extraction_res.json()
         intent = extraction_data.get("intent", "info")  # fallback to info
-        
+
         # Extract parameters needed for quantum optimization
         parameters = extraction_data.get("parameters", {})
-        
+
         # Get swap amount if present
         swap_amount = None
         if intent == "swap" and "amount" in parameters:
@@ -124,7 +146,7 @@ def brian_auto_route():
         result = response.json()
 
         reply = result.get("result", {}).get("answer") or result.get("result")
-        
+
         # Prepare the response object
         response_data = {
             "reply": reply,
@@ -132,7 +154,7 @@ def brian_auto_route():
             "detected_intent": intent,
             "extracted_parameters": parameters,
         }
-        
+
         # Step 4: For swap intents with an amount, run quantum order routing
         if intent == "swap" and swap_amount is not None:
             # Convert the amount to shares/units for the optimizer
@@ -140,28 +162,30 @@ def brian_auto_route():
             if total_shares > 0:
                 # Run the quantum optimizer
                 routing_result = optimize_order_routing(total_shares)
-                
+
                 # Add the routing result to the response
                 response_data["quantum_routing"] = routing_result
-                
+
                 # Enhance the text reply with quantum routing info
                 venues_text = ", ".join([
-                    f"{alloc['venue']} ({alloc['amount']/100:.2f} units)" 
+                    f"{alloc['venue']} ({alloc['amount']/100:.2f} units)"
                     for alloc in routing_result["venue_allocation"]
                 ])
-                
+
                 routing_summary = (
                     f"\n\n🧠 Quantum Routing Optimization:\n"
                     f"For your swap of {swap_amount} units, I've used quantum computing to optimize the routing:\n"
                     f"• Optimal routing: {venues_text}\n"
                     f"• Estimated total cost: ${routing_result['total_cost']:.6f}"
                 )
-                
+
                 response_data["reply"] += routing_summary
 
         return jsonify(response_data)
 
     except requests.exceptions.RequestException as e:
         return jsonify({"error": f"Brian request failed: {str(e)}"}), 500
+
+
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=3003, debug=True)
+    app.run(host='0.0.0.0', port=5002, debug=True)
