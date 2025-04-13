@@ -21,7 +21,7 @@ image: "tda1.png"            },
             {
                 title: "Live Wormhole Data",
                 body: "View live data in a variety of manners thanks to wormhole.",
-                image: "qmc.png"            },
+                image: "live.png"            },
             {
                 title: "Quantum Topological Data Analysis",
                 body: "Finding strucutre in high dimensional data by performing persistent homology using quantum kernel methods.",
