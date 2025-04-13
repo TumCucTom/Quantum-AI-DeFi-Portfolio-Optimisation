@@ -17,7 +17,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ✅ Uniswap V2 풀 주소 정의
+
 UNISWAP_POOLS = {
     ("WETH", "USDC"): "0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc",
     ("WETH", "DAI"): "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11",
@@ -27,7 +27,7 @@ UNISWAP_POOLS = {
 INFURA_RPC = "https://ethereum.publicnode.com"
 web3 = Web3(Web3.HTTPProvider(INFURA_RPC))
 
-# ✅ 실시간 가격 API (Uniswap 기반)
+
 @app.get("/price")
 def get_price(from_token: str = Query(...), to_token: str = Query(...)):
     try:
@@ -61,7 +61,7 @@ def get_price(from_token: str = Query(...), to_token: str = Query(...)):
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
-# ✅ Wormhole 기반 crosschain 상태 체크
+# Base on Wormhole, check the current status
 @app.get("/crosschain/status")
 def get_swap_status():
     script_path = os.path.join(os.path.dirname(__file__), "node-query-wrapper.js")
