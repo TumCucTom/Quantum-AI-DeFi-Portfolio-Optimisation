@@ -7,6 +7,10 @@
 - Provide a **quantum informed XAI** assistant to demystify the quantum x (De)Fi world in an explainable manner
 - We use solana to rebalance portfoliio's for low cost (gas fees)
 
+## Video Walkthrough
+
+[See our video here](https://drive.google.com/file/d/1rJswaWRV4ZFv3y5omEYdseYWrqywxxYq/view?usp=share_link)
+
 ## Reasoning
 
 Quantum computing, through RNG and speed in algorithmic advantage is starting to play are large role in classical finance (with many major financial institutes - HSBC, Moody's etc) and DeFi. This is only bound to grow in the foreseeable future.
