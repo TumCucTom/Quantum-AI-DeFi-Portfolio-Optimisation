@@ -10,6 +10,8 @@ import { useRouter } from "next/navigation";
 import { Switch } from "@/components/ui/switch";
 import { CrossChainSwapChart } from "@/components/ui/dashboard/widgets/cross-chain";
 import { PortfolioAllocation } from "@/components/ui/dashboard/widgets/portfolio-allocation";
+import { PriceChart } from "@/components/ui/dashboard/widgets/price-chart";
+
 
 export default function Dashboard() {
   const router = useRouter();
@@ -292,6 +294,8 @@ export default function Dashboard() {
                   <CrossChainSwapChart />
                 ) : panel.widgetType === "portfolio-allocation" ? (
                     <PortfolioAllocation walletAddress={walletAddress} apiKey={apiKey} />
+                ) : panel.widgetType === "price-chart" ? (
+                    <PriceChart />
                 ) : (
                   <p className="text-sm text-blue-200">Widget Content Here</p>
                 )}
