@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import requests
 
 
 class OrderSlicer:
@@ -17,14 +18,38 @@ class OrderSlicer:
         slice_qty = self.total_quantity // self.num_slices
         quantities = [slice_qty] * self.num_slices
         remaining = self.total_quantity - sum(quantities)
-        quantities[-1] += remaining  # assign any leftover to the last slice
+        quantities[-1] += remaining
         return pd.DataFrame({"timestamp": self.schedule, "quantity": quantities})
 
-    def vwap(self, volume_profile: list):
+    def fetch_live_volume_profile(self, token_pair=("USDC", "ETH")):
+        """
+        Mocked live volume profile fetch from a DeFi API.
+        Returns a normalized numpy array of relative volumes.
+        """
+        try:
+            url = "https://api.wormholescan.io/defi/volume_profile"  # placeholder
+            response = requests.get(url, params={"from_token": token_pair[0], "to_token": token_pair[1]})
+            response.raise_for_status()
+            profile_data = response.json()
+
+            profile = [profile_data.get(str(ts.time()), 1) for ts in self.schedule]
+            profile = np.array(profile)
+            if profile.sum() == 0:
+                raise ValueError("Invalid volume data")
+            return profile / profile.sum()
+        except Exception as e:
+            print(f"⚠️ Using default volume profile. Error: {e}")
+            default = np.array([1 + np.sin(i / self.num_slices * np.pi) for i in range(self.num_slices)])
+            return default / default.sum()
+
+    def vwap(self, volume_profile: list = None, token_pair=("USDC", "ETH")):
         """
         Volume-weighted average price slicing.
-        volume_profile: list or np.array of relative volume proportions (must sum to 1).
+        If volume_profile is None, fetches live data.
         """
+        if volume_profile is None:
+            volume_profile = self.fetch_live_volume_profile(token_pair)
+
         if len(volume_profile) != self.num_slices:
             raise ValueError("Volume profile length must match number of slices.")
         if not np.isclose(sum(volume_profile), 1.0):
@@ -32,7 +57,7 @@ class OrderSlicer:
 
         quantities = [int(q) for q in np.round(np.array(volume_profile) * self.total_quantity)]
         remaining = self.total_quantity - sum(quantities)
-        quantities[-1] += remaining  # fix rounding error
+        quantities[-1] += remaining
         return pd.DataFrame({"timestamp": self.schedule, "quantity": quantities})
 
     def plot(self, df: pd.DataFrame, title="Order Slicing"):
@@ -61,10 +86,8 @@ if __name__ == "__main__":
     print(twap_df)
     slicer.plot(twap_df, title="TWAP Order Slicing")
 
-    # VWAP (example volume profile: more volume in the middle of the window)
-    volume_profile = np.array([1, 3, 5, 7, 5, 3, 1])
-    volume_profile = volume_profile / volume_profile.sum()
-    vwap_df = slicer.vwap(volume_profile=volume_profile)
-    print("\nVWAP Order Slicing:")
+    # VWAP with live data fallback
+    vwap_df = slicer.vwap(token_pair=("USDC", "ETH"))
+    print("\nVWAP Order Slicing (Live Data or Fallback):")
     print(vwap_df)
-    slicer.plot(vwap_df, title="VWAP Order Slicing")
+    slicer.plot(vwap_df, title="VWAP Order Slicing (Live or Fallback)")

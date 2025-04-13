@@ -1,14 +1,13 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
-import json
-from dotenv import load_dotenv
 import os
 import numpy as np
 
-from demo_tools.demo import twap_slicing
-from demo_tools.demo import vwap_slicing
-from demo_tools.demo import quantum_latency_costs
+from classical_tools.order_slicing import 
+from quantum_tools.order_routing import 
+from quantum_tools.order_slicing import 
+from quantum_tools.latency_aware_costs import 
 
 from endpoints.quantum_TDA import quantum_tda_endpoint
 from endpoints.monte_carlo import quantum_monte_carlo_endpoint
