@@ -19,7 +19,9 @@ No only does CertAInty Quantum provide **a suite of quantum enchanced tools for 
 
 ## Quantum Enhanced Execution AI - |Brian⟩
 
-We allow users to execute quantum enchanced trades, just by prompting
+We allow users to execute quantum enchanced trades, just by prompting.
+
+NOTE: This is tempromental (and was extemely hard to test) as the Brian API key going down
 
 The workflow is as follows:
 - call Brian's paraemter extracing api
