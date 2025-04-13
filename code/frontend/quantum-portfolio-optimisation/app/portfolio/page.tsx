@@ -89,7 +89,7 @@ export default function PortfolioPage() {
     // ---------------------------------------------------------------------
     // Fetch SOL Balance using dynamic import of @solana/web3.js (runs only on client)
     async function fetchSolBalance(wallet: string): Promise<string> {
-        if (typeof window === "undefined") return "N/A"; // ✅ Prevent SSR import
+        if (typeof window === "undefined") return "N/A"; // ✅ Prevents Vercel SSR from importing 'encoding'
 
         try {
             const solanaWeb3 = await import("@solana/web3.js");
@@ -103,6 +103,7 @@ export default function PortfolioPage() {
             return "Error";
         }
     }
+
 
     // ---------------------------------------------------------------------
     // Fetch BNB Balance using ethers v5 and BSC RPC.

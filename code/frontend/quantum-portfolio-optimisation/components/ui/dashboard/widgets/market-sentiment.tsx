@@ -17,15 +17,17 @@ import {
 
 
 // Register Chart.js components and financial chart types
-ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    TimeScale,
-    Tooltip,
-    Legend,
-    CandlestickController,
-    CandlestickElement
-);
+useEffect(() => {
+  ChartJS.register(
+      CategoryScale,
+      LinearScale,
+      TimeScale,
+      Tooltip,
+      Legend,
+      CandlestickController,
+      CandlestickElement
+  );
+}, []);
 
 
 // Register date adapter
@@ -90,7 +92,10 @@ export function MarketSentiment() {
     responsive: true,
     plugins: {
       legend: { display: false },
-      tooltip: { mode: "nearest", intersect: false } // ✅ Valid for candlestick
+      tooltip: {
+        mode: "nearest",
+        intersect: false,
+      },
     },
     scales: {
       x: {
@@ -108,7 +113,7 @@ export function MarketSentiment() {
         beginAtZero: false,
       },
     },
-  };
+  } as const; // ✅ Add this to lock down types
 
   return (
     <div className="h-full flex flex-col">
