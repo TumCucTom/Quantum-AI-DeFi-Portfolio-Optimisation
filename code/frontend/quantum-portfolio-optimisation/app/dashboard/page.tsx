@@ -118,7 +118,6 @@ export default function Dashboard() {
 
     // Get all active enhancements (those toggles set to true).
     const activeEnhancements = Object.keys(toggles).filter((key) => toggles[key]);
-
     try {
       // Call the execute endpoint.
       const res = await fetch("/api/execute", {
@@ -130,6 +129,7 @@ export default function Dashboard() {
           prompt: userPrompt,
           userApiKey: apiKey,
           active: activeEnhancements,
+          address: walletAddress
         }),
       });
       const result = await res.json();

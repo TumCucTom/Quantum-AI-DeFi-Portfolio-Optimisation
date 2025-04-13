@@ -358,16 +358,16 @@ const FullGraphs: React.FC = () => {
         <div>
           <h3>Quantum TDA Charts</h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-            <div style={{ width: '50%' }}>
+            <div style={{ width: '25%' }}>
               <HeatmapComponent data={tdaData.quantum_kernel_matrix} title="Quantum Kernel Matrix" />
             </div>
-            <div style={{ width: '50%' }}>
+            <div style={{ width: '25%' }}>
               <HeatmapComponent data={tdaData.classical_kernel_matrix} title="Classical Kernel Matrix" />
             </div>
-            <div style={{ width: '50%' }}>
+            <div style={{ width: '25%' }}>
               <HeatmapComponent data={tdaData.quantum_distance_matrix} title="Quantum Distance Matrix" />
             </div>
-            <div style={{ width: '50%' }}>
+            <div style={{ width: '25%' }}>
               <HeatmapComponent data={tdaData.classical_distance_matrix} title="Classical Distance Matrix" />
             </div>
 
