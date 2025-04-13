@@ -4,10 +4,10 @@ import requests
 import os
 import numpy as np
 
-from classical_tools.order_slicing import 
-from quantum_tools.order_routing import 
-from quantum_tools.order_slicing import 
-from quantum_tools.latency_aware_costs import 
+from classical_tools.order_slicer import run_twap, run_vwap
+from quantum_tools.order_routing import route_order_optimally
+from quantum_tools.order_slicer import solve_order_slicing_live
+from quantum_tools.latency_aware_costs import select_optimal_venue
 
 from endpoints.quantum_TDA import quantum_tda_endpoint
 from endpoints.monte_carlo import quantum_monte_carlo_endpoint
@@ -82,16 +82,15 @@ def simulate():
 @app.route("/quantum/order-slicing", methods=["POST"])
 def quantum_order_slicing():
     data = request.json
-    return jsonify({
-        "message": "Quantum order slicing logic to be implemented.",
-        "input": data
-    })
+    total_shares = data.get("total_shares", 1000)
+    result = solve_order_slicing_live(total_shares)
+    return jsonify(result)
 
 @app.route("/quantum/order-routing", methods=["POST"])
 def quantum_order_routing_endpoint():
     data = request.json
     total_shares = data.get("total_shares", 1000)
-    result = optimize_order_routing(total_shares)
+    result = route_order_optimally(total_shares)
     return jsonify(result)
 
 @app.route("/quantum/latency-costs", methods=["POST"])
@@ -99,7 +98,7 @@ def quantum_latency_costs_endpoint():
     data = request.json
     order_volume = data.get("order_volume", 100000)
     time_remaining = data.get("time_remaining", 5)
-    diagnostics = quantum_latency_costs(order_volume, time_remaining)
+    diagnostics = select_optimal_venue(order_volume, time_remaining)
     return jsonify(diagnostics)
 
 @app.route("/classical/order-slicing/twap", methods=["POST"])
@@ -108,7 +107,7 @@ def classical_twap():
     volume = data.get("order_volume", 100000)
     duration = data.get("duration_minutes", 10)
     slices = data.get("slices", duration)
-    result = twap_slicing(volume, duration, slices)
+    result = run_twap(volume, duration, slices)
     return jsonify({"slices": result})
 
 @app.route("/classical/order-slicing/vwap", methods=["POST"])
@@ -116,7 +115,7 @@ def classical_vwap():
     data = request.json
     volume = data.get("order_volume", 100000)
     profile = data.get("volume_profile", [10, 20, 30, 25, 15])  # example market volume pattern
-    result = vwap_slicing(volume, profile)
+    result = run_vwap(volume, profile)
     return jsonify({"slices": result})
 
 

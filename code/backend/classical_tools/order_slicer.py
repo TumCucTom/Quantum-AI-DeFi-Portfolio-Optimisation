@@ -70,6 +70,33 @@ class OrderSlicer:
         plt.tight_layout()
         plt.show()
 
+def run_twap():
+    slicer = OrderSlicer(
+        total_quantity=100000,
+        start_time="2025-04-11 09:30",
+        end_time="2025-04-11 10:30",
+        frequency="5min"
+    )
+
+    # TWAP
+    twap_df = slicer.twap()
+    print("TWAP Order Slicing:")
+    print(twap_df)
+    slicer.plot(twap_df, title="TWAP Order Slicing")
+
+def run_vwap():
+    slicer = OrderSlicer(
+        total_quantity=100000,
+        start_time="2025-04-11 09:30",
+        end_time="2025-04-11 10:30",
+        frequency="5min"
+    )
+
+    # VWAP with live data fallback
+    vwap_df = slicer.vwap(token_pair=("USDC", "ETH"))
+    print("\nVWAP Order Slicing (Live Data or Fallback):")
+    print(vwap_df)
+    slicer.plot(vwap_df, title="VWAP Order Slicing (Live or Fallback)")
 
 # === Example Usage ===
 if __name__ == "__main__":
