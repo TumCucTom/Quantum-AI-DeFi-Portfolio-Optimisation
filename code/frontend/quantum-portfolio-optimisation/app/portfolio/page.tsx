@@ -89,6 +89,8 @@ export default function PortfolioPage() {
     // ---------------------------------------------------------------------
     // Fetch SOL Balance using dynamic import of @solana/web3.js (runs only on client)
     async function fetchSolBalance(wallet: string): Promise<string> {
+        if (typeof window === "undefined") return "N/A"; // ✅ Prevent SSR import
+
         try {
             const solanaWeb3 = await import("@solana/web3.js");
             const { Connection, PublicKey } = solanaWeb3;

@@ -90,7 +90,7 @@ export function MarketSentiment() {
     responsive: true,
     plugins: {
       legend: { display: false },
-      tooltip: { mode: "index", intersect: false },
+      tooltip: { mode: "nearest", intersect: false } // ✅ Valid for candlestick
     },
     scales: {
       x: {
