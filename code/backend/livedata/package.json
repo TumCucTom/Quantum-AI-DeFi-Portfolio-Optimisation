@@ -13,6 +13,7 @@
     "@wormhole-foundation/wormhole-query-sdk": "^0.0.14",
     "axios": "^1.8.4",
     "ethers": "^6.13.5",
+    "highlight.js": "^11.11.1",
     "recharts": "^2.15.2"
   }
 }

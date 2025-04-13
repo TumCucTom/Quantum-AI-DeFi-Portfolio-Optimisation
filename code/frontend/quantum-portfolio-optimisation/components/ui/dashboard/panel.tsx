@@ -6,7 +6,7 @@ import { PriceChart } from "./widgets/price-chart";
 import { PortfolioAllocation } from "./widgets/portfolio-allocation";
 import { MarketSentiment } from "./widgets/market-sentiment";
 import { TradeHistory } from "./widgets/trade-history";
-import { CrossChainTokenSwap } from "./widgets/cross-chain";
+import { CrossChainSwapChart } from "./widgets/cross-chain";
 
 interface PanelProps {
   id: string;
@@ -33,8 +33,8 @@ export function Panel({ id, widgetType, gridColumn, gridRow, onRemove }: PanelPr
   // Helper function to render the appropriate widget
   function renderWidget() {
     switch (widgetType) {
-      case "cross-chain":
-        return <CrossChainTokenSwap />;
+      case "Cross chain swap":
+        return <CrossChainSwapChart />;
       case "market-sentiment":
         return <MarketSentiment />;
       case "portfolio-allocation":

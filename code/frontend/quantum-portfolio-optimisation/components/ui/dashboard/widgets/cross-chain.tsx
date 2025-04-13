@@ -1,73 +1,121 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { CheckCircle, Loader2 } from "lucide-react";
 
-export function CrossChainTokenSwap() {
+const tokenOptions = ["USDC", "WETH", "DAI"];
+
+export function CrossChainSwapChart() {
+  const [fromToken, setFromToken] = useState("USDC");
+  const [toToken, setToToken] = useState("WETH");
+  const [walletAddress, setWalletAddress] = useState("");
+  const [amount, setAmount] = useState("");
+  const [conversion, setConversion] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch conversion rate when fromToken, toToken, or amount changes
+  useEffect(() => {
+    async function fetchConversionRate() {
+      if (!amount || !fromToken || !toToken || fromToken === toToken) {
+        setConversion(null);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const res = await fetch(
+          `http://localhost:8000/price?from_token=${fromToken}&to_token=${toToken}`
+        );
+        const data = await res.json();
+
+        if (data.price) {
+          const result = (parseFloat(amount) * data.price).toFixed(6);
+          setConversion(`${amount} ${fromToken} ≈ ${result} ${toToken}`);
+        } else {
+          setConversion("Conversion unavailable");
+        }
+      } catch (err) {
+        console.error("Price fetch failed", err);
+        setConversion("Conversion error");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchConversionRate();
+  }, [fromToken, toToken, amount]);
+
   return (
     <div className="h-full flex flex-col">
-      <div className="flex justify-between items-center mb-4">
-        <div className="text-blue-100 font-medium">Cross Chain Token Swap</div>
-        <div className="text-green-400">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            className="w-6 h-6">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 4v5h.582m15.836 0H20V4m0 0l-6 6m6-6l-6 6m0 8v5h-.582m-15.836 0H4v-5m0 5l6-6m-6 6l6-6"
-            />
-          </svg>
-        </div>
+      {/* Header Label */}
+      <div className="text-blue-400 text-sm mb-2 text-center">
+        Cross chain swap via Wormhole
       </div>
 
-      {/* Placeholder for the swap action panel */}
-      <div className="flex-grow bg-blue-900/10 rounded-md border border-blue-400/10 p-4 flex flex-col items-center justify-center">
-        <div className="text-center">
-          <p className="text-blue-200/80 mb-2">Swap Your Tokens</p>
-          <p className="text-xs text-blue-300/60">
-            Seamlessly swap assets across multiple blockchains.
-          </p>
-          <div className="mt-4">
-            <button className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded">
-              Swap Now
-            </button>
-          </div>
-        </div>
+      {/* Title */}
+
+      {/* Token Select */}
+      <div className="flex justify-center gap-2 mb-4">
+        <select
+          value={fromToken}
+          onChange={(e) => setFromToken(e.target.value)}
+          className="bg-blue-950 text-blue-100 border border-blue-400/30 px-2 py-1 rounded"
+        >
+          {tokenOptions.map((token) => (
+            <option key={token} value={token}>
+              {token}
+            </option>
+          ))}
+        </select>
+        <span className="text-blue-300">→</span>
+        <select
+          value={toToken}
+          onChange={(e) => setToToken(e.target.value)}
+          className="bg-blue-950 text-blue-100 border border-blue-400/30 px-2 py-1 rounded"
+        >
+          {tokenOptions.map((token) => (
+            <option key={token} value={token}>
+              {token}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {/* Swap details */}
-      <div className="mt-4 grid grid-cols-2 gap-y-2 text-xs">
-        <div className="flex items-center">
-          <span className="text-blue-200/70">From:</span>
-        </div>
-        <div className="text-right">
-          <span className="text-green-400">Ethereum</span>
-        </div>
+      {/* Input Fields */}
+      <div className="mb-4 space-y-2">
+        <input
+          type="text"
+          placeholder="Your wallet address"
+          value={walletAddress}
+          onChange={(e) => setWalletAddress(e.target.value)}
+          className="w-full bg-blue-950 text-blue-100 border border-blue-400/30 px-3 py-2 rounded"
+        />
+        <input
+          type="number"
+          placeholder="Amount to swap"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          className="w-full bg-blue-950 text-blue-100 border border-blue-400/30 px-3 py-2 rounded"
+        />
+      </div>
 
-        <div className="flex items-center">
-          <span className="text-blue-200/70">To:</span>
+      {/* Conversion Output */}
+      {conversion && (
+        <div className="mb-4 text-center text-sm text-blue-200">
+          {loading ? (
+            <span className="flex justify-center items-center gap-1 text-yellow-300">
+              <Loader2 className="animate-spin h-4 w-4" /> Calculating...
+            </span>
+          ) : (
+            conversion
+          )}
         </div>
-        <div className="text-right">
-          <span className="text-green-400">Binance Smart Chain</span>
-        </div>
+      )}
 
-        <div className="flex items-center">
-          <span className="text-blue-200/70">Fee:</span>
-        </div>
-        <div className="text-right">
-          <span className="text-yellow-400">0.1%</span>
-        </div>
-
-        <div className="flex items-center">
-          <span className="text-blue-200/70">Slippage:</span>
-        </div>
-        <div className="text-right">
-          <span className="text-yellow-400">±0.5%</span>
-        </div>
+      {/* Powered By */}
+      <div className="mt-auto text-xs text-blue-200/70 text-center">
+        Powered by Wormhole Protocol
       </div>
     </div>
   );
