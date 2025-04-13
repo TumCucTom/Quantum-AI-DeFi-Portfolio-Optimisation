@@ -14,7 +14,6 @@ import { PriceChart } from "@/components/ui/dashboard/widgets/price-chart";
 import { MarketSentiment } from "@/components/ui/dashboard/widgets/market-sentiment";
 
 // Register them with Chart.js
-Chart.register(FinancialController, CandlestickController, CandlestickElement);
 export default function Dashboard() {
   const router = useRouter();
   const [showWidgetMenu, setShowWidgetMenu] = useState(false);
