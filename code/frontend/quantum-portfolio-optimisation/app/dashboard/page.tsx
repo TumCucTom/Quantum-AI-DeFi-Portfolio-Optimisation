@@ -61,7 +61,7 @@ export default function Dashboard() {
   const addPanel = (widgetType: string, widgetTitle: string) => {
   // Optionally ensure the panel id is unique by appending a count
   const count = panels.filter(panel => panel.id.startsWith(widgetTitle)).length;
-  const uniqueId = `${widgetTitle}-${count + 1}`;
+  const uniqueId = `${widgetTitle}`;
 
   const newPanel: LayoutPanelProps = {
     id: uniqueId,            // Use the widget title and count as the panel id
