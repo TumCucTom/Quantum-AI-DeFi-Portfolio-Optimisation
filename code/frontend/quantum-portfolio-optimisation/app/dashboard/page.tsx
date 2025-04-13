@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { CrossChainSwapChart } from "@/components/ui/dashboard/widgets/cross-chain";
 import { PortfolioAllocation } from "@/components/ui/dashboard/widgets/portfolio-allocation";
 import { PriceChart } from "@/components/ui/dashboard/widgets/price-chart";
+import { MarketSentiment } from "@/components/ui/dashboard/widgets/market-sentiment";
 
 
 export default function Dashboard() {
@@ -296,7 +297,10 @@ export default function Dashboard() {
                     <PortfolioAllocation walletAddress={walletAddress} apiKey={apiKey} />
                 ) : panel.widgetType === "price-chart" ? (
                     <PriceChart />
-                ) : (
+                ) : panel.widgetType === "market-sentiment" ? (
+                    <MarketSentiment />
+
+                ):(
                   <p className="text-sm text-blue-200">Widget Content Here</p>
                 )}
               </div>
