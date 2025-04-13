@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { JsonRpcProvider, formatUnits, formatEther, Contract } from "ethers";
+import { ethers } from "ethers"; // ✅ Ethers v5 compatible import
 import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 
+// Register chart pieces
 ChartJS.register(ArcElement, Tooltip, Legend);
 
+// MetaMask support for TypeScript
 declare global {
   interface Window {
     ethereum?: any;
@@ -15,7 +17,7 @@ declare global {
 
 interface PortfolioAllocationProps {
   walletAddress: string;
-  apiKey: string; // Accept the API key from props.
+  apiKey: string;
 }
 
 export const PortfolioAllocation: React.FC<PortfolioAllocationProps> = ({
@@ -47,12 +49,12 @@ export const PortfolioAllocation: React.FC<PortfolioAllocationProps> = ({
   const WBTC_ADDRESS = "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599";
 
   // Use the user-provided API key to create your provider.
-  const provider = new JsonRpcProvider(`https://mainnet.infura.io/v3/${apiKey}`);
+  const provider = new ethers.providers.JsonRpcProvider(`https://mainnet.infura.io/v3/${apiKey}`);
 
   async function fetchEthBalance(wallet: string): Promise<number> {
     try {
       const balanceBN = await provider.getBalance(wallet);
-      return parseFloat(formatEther(balanceBN));
+      return parseFloat(ethers.utils.formatEther(balanceBN));
     } catch (error) {
       console.error("Error fetching ETH balance:", error);
       return 0;
@@ -61,12 +63,12 @@ export const PortfolioAllocation: React.FC<PortfolioAllocationProps> = ({
 
   async function fetchERC20Balance(wallet: string, tokenAddress: string): Promise<number> {
     try {
-      const contract = new Contract(tokenAddress, erc20Abi, provider);
+      const contract = new ethers.Contract(tokenAddress, erc20Abi, provider);
       const [balanceBN, decimals] = await Promise.all([
         contract.balanceOf(wallet),
         contract.decimals(),
       ]);
-      return parseFloat(formatUnits(balanceBN, decimals));
+      return parseFloat(ethers.utils.formatUnits(balanceBN, decimals));
     } catch (error) {
       console.error(`Error fetching token balance for ${tokenAddress}:`, error);
       return 0;
