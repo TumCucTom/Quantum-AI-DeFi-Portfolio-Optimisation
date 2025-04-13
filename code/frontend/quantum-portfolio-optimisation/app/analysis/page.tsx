@@ -357,16 +357,26 @@ const FullGraphs: React.FC = () => {
     return (
         <div>
           <h3>Quantum TDA Charts</h3>
-          <HeatmapComponent data={tdaData.quantum_kernel_matrix} title="Quantum Kernel Matrix" />
-          <HeatmapComponent data={tdaData.classical_kernel_matrix} title="Classical Kernel Matrix" />
-          <HeatmapComponent data={tdaData.quantum_distance_matrix} title="Quantum Distance Matrix" />
-          <HeatmapComponent data={tdaData.classical_distance_matrix} title="Classical Distance Matrix" />
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+            <div style={{ width: '50%' }}>
+              <HeatmapComponent data={tdaData.quantum_kernel_matrix} title="Quantum Kernel Matrix" />
+            </div>
+            <div style={{ width: '50%' }}>
+              <HeatmapComponent data={tdaData.classical_kernel_matrix} title="Classical Kernel Matrix" />
+            </div>
+            <div style={{ width: '50%' }}>
+              <HeatmapComponent data={tdaData.quantum_distance_matrix} title="Quantum Distance Matrix" />
+            </div>
+            <div style={{ width: '50%' }}>
+              <HeatmapComponent data={tdaData.classical_distance_matrix} title="Classical Distance Matrix" />
+            </div>
 
-          {quantumPD && quantumPD.map((pd: number[][], index: number) => (
-              <div key={index}>
-                {renderPersistence(pd, `H${index}`)}
-              </div>
-          ))}
+            {quantumPD && quantumPD.map((pd: number[][], index: number) => (
+                <div key={index} style={{ width: '50%' }}>
+                  {renderPersistence(pd, `H${index}`)}
+                </div>
+            ))}
+          </div>
         </div>
     );
   };
