@@ -38,7 +38,12 @@ export function Panel({ id, widgetType, gridColumn, gridRow, onRemove }: PanelPr
       case "market-sentiment":
         return <MarketSentiment />;
       case "portfolio-allocation":
-        return <PortfolioAllocation />;
+        return (
+            <PortfolioAllocation
+                walletAddress="0x123...abc"
+                apiKey={process.env.NEXT_PUBLIC_INFURA_KEY!}
+            />
+        );
       case "price-chart":
         return <PriceChart />;
       case "trade-history":
