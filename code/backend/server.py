@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
 import os
+import numpy as np
 
 from demo_tools.demo import twap_slicing
 from demo_tools.demo import vwap_slicing
@@ -14,31 +15,69 @@ from endpoints.monte_carlo import quantum_monte_carlo_endpoint
 app = Flask(__name__)
 CORS(app)
 
+def sanitize_for_json(obj):
+    """Recursively replace inf, -inf, nan in a structure with safe JSON values."""
+    if isinstance(obj, float):
+        if np.isnan(obj):
+            return 0
+        if np.isinf(obj):
+            return 10000
+        return obj
+    elif isinstance(obj, list):
+        return [sanitize_for_json(item) for item in obj]
+    elif isinstance(obj, dict):
+        return {k: sanitize_for_json(v) for k, v in obj.items()}
+    else:
+        return obj
+
+
 # === Routes ===
 @app.route("/api/quantum_tda", methods=["POST"])
 def quantum_tda_api():
     try:
-        # Try to get JSON from the request; if none, input_data remains None
-        input_data = request.get_json(silent=True)
-        result = quantum_tda_endpoint(input_data)
-        return jsonify(result)
+        input_data = request.get_json(silent=True) or {}
+
+        data_identifier = input_data.get("data_identifier", None)
+        use_pauli = input_data.get("use_pauli", False)
+
+        result = quantum_tda_endpoint(data_identifier=data_identifier, use_pauli=use_pauli)
+
+        # Sanitize result for safe JSON output
+        clean_result = sanitize_for_json(result)
+
+        return jsonify(clean_result)
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @app.route("/api/quantum_mc", methods=["GET", "POST"])
 def simulate():
     try:
         if request.method == "POST":
-            input_data = request.get_json()
+            json_data = request.get_json() or {}
+            # Extract optional parameters
+            input_data = json_data.get("input_data", None)
+            normalize = json_data.get("normalize", True)
+            sim_qubits = json_data.get("sim_qubits", 4)
+            max_eval_qubits = json_data.get("max_eval_qubits", 6)
         else:
-            input_data = None  # Use defaults
+            input_data = None
+            normalize = True
+            sim_qubits = 4
+            max_eval_qubits = 6
 
-        result = quantum_monte_carlo_endpoint(input_data)
+        result = quantum_monte_carlo_endpoint(
+            input_data=input_data,
+            normalize=normalize,
+            sim_qubits=sim_qubits,
+            max_eval_qubits=max_eval_qubits
+        )
         return jsonify(result)
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @app.route("/quantum/order-slicing", methods=["POST"])
 def quantum_order_slicing():
