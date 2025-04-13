@@ -136,7 +136,7 @@ const FullGraphs: React.FC = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:5002/api/quantum_mc', {
+      const response = await fetch('http://127.0.0.1:5002/api/quantum_mc', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -161,7 +161,7 @@ const FullGraphs: React.FC = () => {
     console.log("defaults");
 
     try {
-      const response = await fetch('http://localhost:5002/api/quantum_mc', {
+      const response = await fetch('http://127.0.0.1:5002/api/quantum_mc', {
         method: 'GET'
       });
       const data = await response.json();
@@ -186,7 +186,7 @@ const FullGraphs: React.FC = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5002/api/quantum_tda', {
+      const response = await fetch('http://127.0.0.1:5002/api/quantum_tda', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -206,7 +206,7 @@ const FullGraphs: React.FC = () => {
     setTdaUsePauli(true);
 
     try {
-      const response = await fetch('http://localhost:5002/api/quantum_tda', {
+      const response = await fetch('http://127.0.0.1:5002/api/quantum_tda', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ data_identifier: "loop", use_pauli: true })
