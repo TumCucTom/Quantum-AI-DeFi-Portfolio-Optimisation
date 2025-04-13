@@ -59,7 +59,7 @@ export function MarketSentiment() {
 
         const dataObject = {
           // Labels are optional when the dataset has its own x-values.
-          labels: candlestickData.map(point => point.x),
+          labels: candlestickData.map((point: { x: any; }) => point.x),
           datasets: [
             {
               label: "BTC/USDT Candlestick",
