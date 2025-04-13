@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import { X, LineChart, PieChart, BarChart3, Clock } from "lucide-react";
+import { X, LineChart, PieChart, BarChart3, Clock, ArrowRightLeft } from "lucide-react";
 
 interface WidgetMenuProps {
-  onSelectWidget: (widgetType: string) => void;
+  onSelectWidget: (widgetType: string, widgetName: string) => void;
   onClose: () => void;
 }
 
@@ -34,6 +34,12 @@ export function WidgetMenu({ onSelectWidget, onClose }: WidgetMenuProps) {
       description: "Recent trades and transaction history",
       icon: <Clock className="h-10 w-10 text-blue-400" />,
     },
+    {
+      type: "cross-chain",
+      name: "Cross Chain Token Swap",
+      description: "Swap tokens across chains through wormhole",
+      icon: <ArrowRightLeft className="h-10 w-10 text-blue-400" />,
+    },
   ];
 
   return (
@@ -55,8 +61,10 @@ export function WidgetMenu({ onSelectWidget, onClose }: WidgetMenuProps) {
           {widgets.map((widget) => (
             <button
               key={widget.type}
-              className="p-4 border border-blue-400/20 rounded-lg bg-blue-900/20 hover:bg-blue-900/30 transition-colors flex items-start text-left"
-              onClick={() => onSelectWidget(widget.type)}
+              className={`p-4 border border-blue-400/20 rounded-lg bg-blue-900/20 hover:bg-blue-900/30 transition-colors flex items-start text-left ${
+                widget.type === "cross-chain" ? "md:col-span-2" : ""
+              }`}
+              onClick={() => onSelectWidget(widget.type, widget.name)}
             >
               <div className="mr-4 p-2 bg-blue-900/30 rounded-lg border border-blue-400/20">
                 {widget.icon}
