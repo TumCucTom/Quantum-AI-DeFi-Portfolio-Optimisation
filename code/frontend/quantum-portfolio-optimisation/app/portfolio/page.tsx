@@ -42,10 +42,12 @@ export default function PortfolioPage() {
   async function fetchEthBalance(wallet: string): Promise<string> {
     try {
       // Replace with your actual Infura key
+      // @ts-ignore
       const provider = new ethers.providers.JsonRpcProvider(
         "https://mainnet.infura.io/v3/3fb074b72df549aa82cdbbde363970c4"
       );
       const balance = await provider.getBalance(wallet);
+      // @ts-ignore
       return ethers.utils.formatEther(balance);
     } catch (error) {
       console.error("Error fetching ETH balance:", error);
@@ -74,8 +76,10 @@ export default function PortfolioPage() {
   // Fetch BNB Balance using ethers v5 and BSC RPC.
   async function fetchBnbBalance(wallet: string): Promise<string> {
     try {
+      // @ts-ignore
       const provider = new ethers.providers.JsonRpcProvider("https://bsc-dataseed.binance.org/");
       const balance = await provider.getBalance(wallet);
+      // @ts-ignore
       return ethers.utils.formatEther(balance);
     } catch (error) {
       console.error("Error fetching BNB balance:", error);
