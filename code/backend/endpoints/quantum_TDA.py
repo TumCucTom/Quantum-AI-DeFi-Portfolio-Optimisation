@@ -66,55 +66,41 @@ def compute_persistence(distance_matrix: np.ndarray):
     """
     return ripser(distance_matrix, distance_matrix=True)['dgms']
 
+
 # ------------------------------
 # API Endpoint Function
 # ------------------------------
-def quantum_tda_endpoint(input_data: dict = None) -> dict:
+def quantum_tda_endpoint(data_identifier=2, use_pauli=False) -> dict:
     """
     API endpoint function for Quantum Topological Data Analysis.
 
-    If input_data is None, default parameters are used.
+    Parameters:
+    - data_identifier: name or number of dataset to use. One of:
+        "synthetic_clusters", "1"
+        "loop", "2"
+        "swiss_roll", "3"
+        "csv", "4"
+    - use_pauli: boolean, whether to use PauliFeatureMap instead of ZZFeatureMap
 
-    Expected keys in input_data (all optional):
-      - data_type: one of "synthetic_clusters", "loop", "swiss_roll", "csv"
-      - num_samples: (for synthetic_clusters) default 100
-      - num_features: (for synthetic_clusters) default 4
-      - n_points: (for loop data) default 100
-      - noise: noise level for loop data, default 0.05
-      - swiss_roll_n_points: (for swiss_roll) default 150
-      - swiss_roll_noise: default 0.1
-      - use_pauli: boolean for quantum kernel feature map. Default False.
-      - gamma: gamma parameter for RBF kernel (classical). Default 0.001.
-      - csv_path: if data_type is "csv", provide a path to a CSV file.
-
-    Returns a JSON–friendly dictionary with:
-      - "data_type": the type of data used
-      - "input_data": the raw data used (as list of lists)
-      - "quantum_kernel_matrix": 2D list representation of the quantum kernel matrix
-      - "classical_kernel_matrix": 2D list representation of the classical RBF kernel matrix
-      - "quantum_distance_matrix": 2D list of the distance matrix derived from the quantum kernel
-      - "classical_distance_matrix": 2D list of the distance matrix derived from the classical kernel
-      - "quantum_persistence_diagrams": list (per homology dimension) of persistence points [[birth, death], ...]
-      - "classical_persistence_diagrams": list (per homology dimension) of persistence points
+    Returns a dictionary with kernel matrices, distance matrices, and persistence diagrams.
     """
     # Default parameters
-    defaults = {
-        "data_type": "synthetic_clusters",  # alternatives: "loop", "swiss_roll", "csv"
+    params = {
+        "data_type": "synthetic_clusters",  # default
         "num_samples": 100,
         "num_features": 4,
         "n_points": 100,
         "noise": 0.05,
         "swiss_roll_n_points": 150,
         "swiss_roll_noise": 0.1,
-        "use_pauli": False,
+        "use_pauli": use_pauli,
         "gamma": 0.001,
         "csv_path": None
     }
-    # Override defaults with input_data if provided
-    if input_data is not None:
-        params = {**defaults, **input_data}
-    else:
-        params = defaults
+
+    # If provided, override data type
+    if data_identifier is not None:
+        params["data_type"] = str(data_identifier).lower()
 
     # ------------------------------
     # Data Selection and Generation
@@ -136,7 +122,7 @@ def quantum_tda_endpoint(input_data: dict = None) -> dict:
         data = df.values
         data_type_used = "csv"
     else:
-        return {"error": "Invalid data_type provided."}
+        return {"error": f"Invalid data_type '{data_type}' provided."}
 
     # ------------------------------
     # Kernel Computations
@@ -171,12 +157,10 @@ def quantum_tda_endpoint(input_data: dict = None) -> dict:
     return output
 
 # ------------------------------
-# Example usage: Running the endpoint directly
+# Example usage
 # ------------------------------
 if __name__ == "__main__":
-    # Here you can call the endpoint with default parameters.
-    result_json = quantum_tda_endpoint()
-
-    # For demonstration, pretty-print the JSON output.
     import json
+    # Run with swiss roll and use Pauli map
+    result_json = quantum_tda_endpoint(data_identifier="2", use_pauli=True)
     print(json.dumps(result_json, indent=2))

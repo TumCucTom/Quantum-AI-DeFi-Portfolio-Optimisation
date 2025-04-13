@@ -140,19 +140,7 @@ class QuantumMonteCarloSimulator:
 # ------------------------------------------------------------------------------
 # The API endpoint function that collects all simulation data into JSON.
 # ------------------------------------------------------------------------------
-def quantum_monte_carlo_endpoint(input_data=None):
-    """
-    API endpoint function for the Quantum Monte Carlo Simulator.
-    If input_data is None, default simulation parameters are used.
-
-    Returns a JSON-friendly dictionary with keys for:
-      - 'classical_rng_simulation'
-      - 'quantum_rng_simulation'
-      - 'quantum_amplitude_estimation'
-      - 'qae_learning_curve'
-
-    Each key contains the data arrays (converted to lists) needed to reconstruct the plots.
-    """
+def quantum_monte_carlo_endpoint(input_data=None, normalize=True, sim_qubits=4, max_eval_qubits=6):
     # Default parameters (override with input_data if provided)
     defaults = {
         "S0": 100,
@@ -164,12 +152,10 @@ def quantum_monte_carlo_endpoint(input_data=None):
         "paths": 1000
     }
     if input_data is not None:
-        # Override defaults with provided input_data.
         params = {**defaults, **input_data}
     else:
         params = defaults
 
-    # Create simulator instance with provided/default parameters.
     simulator = QuantumMonteCarloSimulator(
         S0=params["S0"],
         r=params["r"],
@@ -180,94 +166,57 @@ def quantum_monte_carlo_endpoint(input_data=None):
         paths=params["paths"]
     )
 
-    # -------------------------
-    # 1. Classical Simulation (Classical RNG)
-    # -------------------------
     time_grid_class, paths_class, term_prices_class, est_price_class = simulator.run_classical_simulation(rng_type='classical')
-    # Select a few sample paths (up to 10)
     sample_paths_class = paths_class[:10, :].tolist()
     time_grid_list = time_grid_class.tolist()
-    # Compute histogram of terminal prices with 30 bins
     hist_counts_class, hist_bins_class = np.histogram(term_prices_class, bins=30)
-    classical_hist = {
-        "bins": hist_bins_class.tolist(),
-        "counts": hist_counts_class.tolist()
-    }
     classical_simulation_data = {
         "time_grid": time_grid_list,
         "sample_paths": sample_paths_class,
         "terminal_prices": term_prices_class.tolist(),
         "estimated_price": float(est_price_class),
-        "histogram": classical_hist
+        "histogram": {
+            "bins": hist_bins_class.tolist(),
+            "counts": hist_counts_class.tolist()
+        }
     }
 
-    # -------------------------
-    # 2. Classical Simulation (Quantum RNG)
-    # -------------------------
-    time_grid_quant, paths_quant = simulator.run_classical_simulation(rng_type='quantum')[0:4]
-    # Unpack the output:
     time_grid_quant, paths_quant, term_prices_quant, est_price_quant = simulator.run_classical_simulation(rng_type='quantum')
     sample_paths_quant = paths_quant[:10, :].tolist()
     time_grid_quant_list = time_grid_quant.tolist()
     hist_counts_quant, hist_bins_quant = np.histogram(term_prices_quant, bins=30)
-    quantum_hist = {
-        "bins": hist_bins_quant.tolist(),
-        "counts": hist_counts_quant.tolist()
-    }
     quantum_simulation_data = {
         "time_grid": time_grid_quant_list,
         "sample_paths": sample_paths_quant,
         "terminal_prices": term_prices_quant.tolist(),
         "estimated_price": float(est_price_quant),
-        "histogram": quantum_hist
+        "histogram": {
+            "bins": hist_bins_quant.tolist(),
+            "counts": hist_counts_quant.tolist()
+        }
     }
 
-    # -------------------------
-    # 3. Quantum Amplitude Estimation (QAE)
-    # -------------------------
-    result_qae = simulator.run_quantum_amplitude_estimation(num_eval_qubits=3)
-    # Assuming result_qae.samples is a dict of {value: probability}
-    # Convert samples to a list of dictionaries for JSON friendliness.
+    result_qae = simulator.run_quantum_amplitude_estimation(num_eval_qubits=sim_qubits)
     qae_samples = []
     if isinstance(result_qae.samples, dict):
         for val, prob in result_qae.samples.items():
             qae_samples.append({"value": float(val), "probability": float(prob)})
     qae_data = {
         "estimate": float(result_qae.estimation),
-        "confidence_interval": [float(result_qae.confidence_interval[0]), float(result_qae.confidence_interval[1])],
+        "confidence_interval": [float(x) for x in result_qae.confidence_interval],
         "samples": qae_samples
     }
 
-    # -------------------------
-    # 4. QAE Learning Curve
-    # -------------------------
-    # Parameters for learning curve
-    num_qubits = 4     # number of state qubits for the uncertainty model
-    max_eval_qubits = 6
-    normalise = True
-    # Use bounds and rescaling factor as in the original plot_qae_learning function
     bounds = (0, 5 * simulator.S0)
     rescaling_factor = bounds[1] - simulator.strike
-
-    # For classical comparison, generate simulation using default RNG (classical)
-    _, _, term_prices_temp, classical_price = simulator.run_classical_simulation(rng_type='classical')
-    # Note: classical_price here is the option price from classical simulation.
-
-    estimates = []
-    ci_lowers = []
-    ci_uppers = []
+    _, _, _, classical_price = simulator.run_classical_simulation(rng_type='classical')
+    estimates, ci_lowers, ci_uppers = [], [], []
     for q in range(1, max_eval_qubits + 1):
-        # Create the uncertainty model
         mu = np.log(simulator.S0) + (simulator.r - 0.5 * simulator.sigma**2) * simulator.T
         sigma_tilde = simulator.sigma * np.sqrt(simulator.T)
-        uncertainty_model = LogNormalDistribution(
-            num_qubits=num_qubits,
-            mu=mu,
-            sigma=sigma_tilde,
-            bounds=bounds
-        )
+        uncertainty_model = LogNormalDistribution(num_qubits=sim_qubits, mu=mu, sigma=sigma_tilde, bounds=bounds)
         european_call = EuropeanCallPricing(
-            num_state_qubits=num_qubits,
+            num_state_qubits=sim_qubits,
             strike_price=simulator.strike,
             bounds=bounds,
             uncertainty_model=uncertainty_model,
@@ -282,7 +231,7 @@ def quantum_monte_carlo_endpoint(input_data=None):
         result = ae.estimate(problem)
         est = result.estimation
         ci = result.confidence_interval
-        if normalise:
+        if normalize:
             est /= rescaling_factor
             ci = [ci[0] / rescaling_factor, ci[1] / rescaling_factor]
             classical_norm = classical_price / rescaling_factor
@@ -298,23 +247,23 @@ def quantum_monte_carlo_endpoint(input_data=None):
         "classical_norm": float(classical_norm)
     }
 
-    # -------------------------
-    # Combine All Data into One JSON Structure
-    # -------------------------
-    output = {
+    return {
         "classical_rng_simulation": classical_simulation_data,
         "quantum_rng_simulation": quantum_simulation_data,
         "quantum_amplitude_estimation": qae_data,
         "qae_learning_curve": qae_learning_data
     }
-    return output
 
-# ------------------------------------------------------------------------------
-# Example: Running the API endpoint function directly.
-# In a real API, you would hook this into your web framework.
-# ------------------------------------------------------------------------------
 if __name__ == "__main__":
-    # Call the endpoint with default data:
-    result_json = quantum_monte_carlo_endpoint()
-    # For demonstration, print the JSON output (pretty printed).
+    # Example: run with overrides
+    input_overrides = {
+        "S0": 120,
+        "r": 0.03,
+        "sigma": 0.25,
+        "T": 1.5,
+        "strike": 110,
+        "steps": 300,
+        "paths": 2000
+    }
+    result_json = quantum_monte_carlo_endpoint(input_data=input_overrides, normalize=False, sim_qubits=5, max_eval_qubits=7)
     print(json.dumps(result_json, indent=2))

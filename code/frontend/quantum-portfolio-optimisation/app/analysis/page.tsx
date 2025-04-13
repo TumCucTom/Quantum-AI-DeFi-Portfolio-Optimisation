@@ -17,6 +17,7 @@ import {
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 import axios from 'axios';
 import MiniChart from "./MiniChart";
+import HeatmapComponent from "@/components/ui/analysis/heatmap";
 
 interface TokenInfo {
   name: string;
@@ -157,6 +158,7 @@ const FullGraphs: React.FC = () => {
     setSimQubits(3);
     setMaxEvalQubits(6);
     setNormalise(false);
+    console.log("defaults");
 
     try {
       const response = await fetch('http://localhost:5002/api/quantum_mc', {
@@ -201,13 +203,13 @@ const FullGraphs: React.FC = () => {
   const handleRunDefaultTda = async () => {
     setTdaFile(null);
     setTdaMethod("loop");
-    setTdaUsePauli(false);
+    setTdaUsePauli(true);
 
     try {
       const response = await fetch('http://localhost:5002/api/quantum_tda', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data_type: "loop", use_pauli: false })
+        body: JSON.stringify({ data_identifier: "loop", use_pauli: true })
       });
       const data = await response.json();
       console.log("Default TDA data:", data);
@@ -219,50 +221,109 @@ const FullGraphs: React.FC = () => {
 
   // Render Monte Carlo charts if data is available
   const renderMonteCarloCharts = () => {
-    if (!mcData) return null;
+    if (!mcData || !mcData.classical_rng_simulation || !mcData.quantum_rng_simulation) return null;
 
-    // Extract classical and quantum simulation data from API result
     const classicalSim = mcData.classical_rng_simulation;
     const quantumSim = mcData.quantum_rng_simulation;
 
-    // Create a line chart with a few classical sample paths
-    const classicalLineData = {
-      labels: classicalSim.time_grid,
-      datasets: classicalSim.sample_paths.slice(0, 5).map((path: number[], index: number) => ({
-        label: `Path ${index + 1}`,
-        data: path,
-        fill: false,
-        borderWidth: 1,
-      }))
+    if (!classicalSim.time_grid || !classicalSim.sample_paths || !quantumSim.sample_paths) return null;
+
+    const getColor = (i: number) => {
+      const colors = [
+        '#f94144', '#f3722c', '#f8961e', '#f9c74f', '#90be6d',
+        '#43aa8b', '#577590', '#277da1', '#9c89b8', '#ff70a6',
+        '#70d6ff', '#ffd670', '#ff9770', '#e9ff70', '#b5ead7',
+        '#00f5d4', '#00bbf9', '#ff006e', '#8338ec', '#3a86ff'
+      ];
+      return colors[i % colors.length];
     };
 
-    // Create a bar chart comparing the estimated prices from classical and quantum runs
+    const createLineData = (paths: number[][], labelPrefix: string) => ({
+      labels: classicalSim.time_grid,
+      datasets: paths.slice(0, 20).map((path: number[], index: number) => ({
+        label: `${labelPrefix} ${index + 1}`,
+        data: path,
+        borderColor: getColor(index),
+        backgroundColor: getColor(index),
+        fill: false,
+        borderWidth: 1.5,
+        pointRadius: 0
+      }))
+    });
+
+    const lineOptions = {
+      responsive: true,
+      plugins: {
+        legend: {
+          labels: {
+            color: 'white'
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: 'white' },
+          grid: { color: 'white' }
+        },
+        y: {
+          ticks: { color: 'white' },
+          grid: { color: 'white' }
+        }
+      }
+    };
+
     const comparisonData = {
       labels: ['Classical', 'Quantum'],
       datasets: [{
         label: 'Estimated Price',
-        data: [classicalSim.estimated_price, quantumSim.estimated_price],
-        backgroundColor: [
-          'rgba(75, 192, 192, 0.6)',
-          'rgba(153, 102, 255, 0.6)'
-        ],
+        data: [classicalSim.estimated_price ?? 0, quantumSim.estimated_price ?? 0],
+        backgroundColor: ['#4fd1c5', '#b794f4']
       }]
+    };
+
+    const comparisonOptions = {
+      plugins: {
+        legend: {
+          labels: { color: 'white' }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: 'white' },
+          grid: { color: 'white' }
+        },
+        y: {
+          ticks: { color: 'white' },
+          grid: { color: 'white' }
+        }
+      }
     };
 
     return (
         <div>
           <h3>Monte Carlo Simulation Charts</h3>
+
+          {/* Classical RNG Chart */}
           <div style={{ marginBottom: '2rem' }}>
             <h4>Classical Sample Paths</h4>
-            <Line data={classicalLineData} />
+            <Line data={createLineData(classicalSim.sample_paths, "Classical Path")} options={lineOptions} />
           </div>
+
+          {/* Quantum RNG Chart */}
+          <div style={{ marginBottom: '2rem' }}>
+            <h4>Quantum Sample Paths</h4>
+            <Line data={createLineData(quantumSim.sample_paths, "Quantum Path")} options={lineOptions} />
+          </div>
+
+          {/* Estimated price comparison */}
           <div style={{ marginBottom: '2rem' }}>
             <h4>Estimated Price Comparison</h4>
-            <Bar data={comparisonData} />
+            <Bar data={comparisonData} options={comparisonOptions} />
           </div>
         </div>
     );
   };
+
 
   // Render TDA charts if data is available
   const renderTdaCharts = () => {
@@ -296,11 +357,26 @@ const FullGraphs: React.FC = () => {
     return (
         <div>
           <h3>Quantum TDA Charts</h3>
-          {quantumPD && quantumPD.map((pd: number[][], index: number) => (
-              <div key={index}>
-                {renderPersistence(pd, `H${index}`)}
-              </div>
-          ))}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+            <div style={{ width: '50%' }}>
+              <HeatmapComponent data={tdaData.quantum_kernel_matrix} title="Quantum Kernel Matrix" />
+            </div>
+            <div style={{ width: '50%' }}>
+              <HeatmapComponent data={tdaData.classical_kernel_matrix} title="Classical Kernel Matrix" />
+            </div>
+            <div style={{ width: '50%' }}>
+              <HeatmapComponent data={tdaData.quantum_distance_matrix} title="Quantum Distance Matrix" />
+            </div>
+            <div style={{ width: '50%' }}>
+              <HeatmapComponent data={tdaData.classical_distance_matrix} title="Classical Distance Matrix" />
+            </div>
+
+            {quantumPD && quantumPD.map((pd: number[][], index: number) => (
+                <div key={index} style={{ width: '50%' }}>
+                  {renderPersistence(pd, `H${index}`)}
+                </div>
+            ))}
+          </div>
         </div>
     );
   };
