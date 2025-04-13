@@ -35,7 +35,9 @@ these calls can be seen in [this script](https://github.com/TumCucTom/Quantum-AI
 
 #### Quantum TDA
 
-quantum-enhanced topological data analysis pipeline by encoding high-dimensional data into a quantum feature space using a quantum kernel (with either ZZ or Pauli feature maps) and, in parallel, computing a classical RBF kernel, then converting these kernels into distance matrices. It applies persistent homology (via ripser) to these distance matrices to extract topological features, visualizing persistence diagrams and kernel heatmaps that reveal the underlying structure of the data.
+we run quantum enhanced topological data analysis by encoding high-dimensional data using a quantum kernel (a quantum feature space) using ZZ or Pauli maps - we compare this to a classical RBF kernel.
+
+Using persistent homology (via ripser) on the distance matrices produced from the kernels we extract topological features, visualizing persistence diagrams and kernel heatmaps that show underlying financial structures of the data.
 
 You can use our AI to descibe this to you [here](https://certainty-quantum.thomasbale.com/snippet)
 
