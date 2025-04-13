@@ -14,9 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { ArrowRight, Eye, Percent, Wallet } from "lucide-react";
-import { JsonRpcProvider, Web3Provider, formatEther } from "ethers";
-const provider = new JsonRpcProvider("https://...");
-const web3Provider = new Web3Provider(window.ethereum);
+import { ethers } from "ethers";
 
 export default function PortfolioPage() {
     // --- UI Mode state ---

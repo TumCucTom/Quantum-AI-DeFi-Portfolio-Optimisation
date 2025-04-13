@@ -1,165 +1,164 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
-  LineElement,
-  PointElement,
-  LinearScale,
-  Title,
   CategoryScale,
+  LinearScale,
+  TimeScale,
   Tooltip,
   Legend,
 } from "chart.js";
 
-// Register Chart.js components.
-ChartJS.register(LineElement, PointElement, LinearScale, Title, CategoryScale, Tooltip, Legend);
+import {
+  FinancialController,
+  CandlestickController,
+  CandlestickElement,
+} from "chartjs-chart-financial";
 
-interface Coin {
-  id: string;
-  label: string;
-  color: string;
-}
+// Register Chart.js components and financial chart types
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    TimeScale,
+    Tooltip,
+    Legend,
+    FinancialController,
+    CandlestickController,
+    CandlestickElement
+);
 
-const allCoins: Coin[] = [
-  { id: "bitcoin", label: "BTC/USD", color: "#60A5FA" },
-  { id: "ethereum", label: "ETH/USD", color: "#A78BFA" },
-  { id: "litecoin", label: "LTC/USD", color: "#4ADE80" },
-];
+// Register date adapter
+import "chartjs-adapter-date-fns";
 
-export function PriceChart() {
+// ✅ Import the React wrapper last, using an alias to avoid name collision
+import { Chart as ReactChart } from "react-chartjs-2";
+
+export function MarketSentiment() {
   const [chartData, setChartData] = useState<any>(null);
   const [isFetching, setIsFetching] = useState(true);
 
-  // This state determines which coins are toggled on (displayed).
-  const [selectedCoins, setSelectedCoins] = useState<string[]>(allCoins.map((coin) => coin.id));
+  useEffect(() => {
+    async function fetchMarketData() {
+      setIsFetching(true);
+      try {
+        // Fetch 1h interval candlestick data for BTC/USDT for the past 24 hours.
+        const res = await fetch(
+          "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=24"
+        );
+        const data = await res.json();
+        // Transform Binance response to the format required by chartjs-chart-financial.
+        // Each element: [openTime, open, high, low, close, volume, ...]
+        const candlestickData = data.map((item: any[]) => ({
+          x: new Date(item[0]),      // Open time (in milliseconds).
+          o: parseFloat(item[1]),      // Open price.
+          h: parseFloat(item[2]),      // High price.
+          l: parseFloat(item[3]),      // Low price.
+          c: parseFloat(item[4]),      // Close price.
+        }));
 
-  // Fetch market chart data for one coin.
-  async function fetchCoinMarketChart(coinId: string) {
-    const response = await fetch(
-        `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=1&interval=hourly`
-    );
-    const data = await response.json();
-    return data.prices; // Returns an array of [timestamp, price]
-  }
+        const dataObject = {
+          // Labels are optional when the dataset has its own x-values.
+          labels: candlestickData.map(point => point.x),
+          datasets: [
+            {
+              label: "BTC/USDT Candlestick",
+              data: candlestickData,
+              borderColor: "#60A5FA",
+              // Color configuration for candlesticks.
+              color: {
+                up: "#00FF00",         // When close > open.
+                down: "#FF0000",       // When close < open.
+                unchanged: "#999999",  // When no change.
+              },
+            },
+          ],
+        };
 
-  async function fetchPriceData() {
-    setIsFetching(true);
-    try {
-      // Fetch data for all coins concurrently.
-      const results = await Promise.all(
-          allCoins.map(async (coin) => {
-            const prices = await fetchCoinMarketChart(coin.id);
-            return { coinId: coin.id, prices };
-          })
-      );
-
-      // Use the first coin's timestamps as the labels.
-      const primaryPrices = results[0]?.prices || [];
-      const labels = primaryPrices.map((point: number[]) => {
-        const date = new Date(point[0]);
-        return `${date.getHours()}:${("0" + date.getMinutes()).slice(-2)}`;
-      });
-
-      // Build datasets only for the coins that are selected.
-      const datasets = results
-          .filter((result) => selectedCoins.includes(result.coinId))
-          .map((result) => {
-            const coinInfo = allCoins.find((c) => c.id === result.coinId);
-            const dataPoints = result.prices.map((point: number[]) => point[1]);
-            return {
-              label: coinInfo?.label,
-              data: dataPoints,
-              borderColor: coinInfo?.color,
-              backgroundColor: coinInfo?.color,
-              fill: false,
-              tension: 0.1,
-              pointRadius: 2,
-            };
-          });
-
-      const updatedChartData = {
-        labels,
-        datasets,
-      };
-
-      setChartData(updatedChartData);
-    } catch (error) {
-      console.error("Error fetching market chart data:", error);
-    } finally {
-      setIsFetching(false);
+        setChartData(dataObject);
+      } catch (error) {
+        console.error("Error fetching candlestick data:", error);
+      } finally {
+        setIsFetching(false);
+      }
     }
-  }
-
-  // Update data when selectedCoins change
-  useEffect(() => {
-    fetchPriceData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCoins]);
-
-  // Refresh every minute.
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchPriceData();
-    }, 60000);
-    return () => clearInterval(interval);
+    fetchMarketData();
   }, []);
 
-  // Handler to toggle coins on/off.
-  const handleToggleCoin = (coinId: string) => {
-    setSelectedCoins((prev) =>
-        prev.includes(coinId)
-            ? prev.filter((id) => id !== coinId)
-            : [...prev, coinId]
-    );
+  // Chart options to configure time scales and tooltips.
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: { mode: "index", intersect: false },
+    },
+    scales: {
+      x: {
+        type: "time",
+        time: {
+          unit: "hour",
+          tooltipFormat: "MMM d, hA",
+        },
+        ticks: {
+          maxRotation: 0,
+          minRotation: 0,
+        },
+      },
+      y: {
+        beginAtZero: false,
+      },
+    },
   };
 
   return (
-      <div className="h-full flex flex-col">
-        {/* Header */}
-        <div className="flex justify-between mb-4">
-          <div className="text-blue-100 font-medium">Multi-Coin Price Chart</div>
-          <div className="text-green-400">+2.45%</div>
-        </div>
+    <div className="h-full flex flex-col">
+      {/* Header */}
+      <div className="flex justify-between mb-4">
+        <div className="text-blue-100 font-medium">Market Sentiment</div>
+        <div className="text-green-400">Bullish</div>
+      </div>
 
-        {/* Toggle Controls */}
-        <div className="mb-4 flex gap-4">
-          {allCoins.map((coin) => (
-              <label key={coin.id} className="flex items-center gap-1">
-                <input
-                    type="checkbox"
-                    checked={selectedCoins.includes(coin.id)}
-                    onChange={() => handleToggleCoin(coin.id)}
-                />
-                <span className="text-blue-100">{coin.label}</span>
-              </label>
-          ))}
-        </div>
+      {/* Candlestick Chart Display */}
+      <div className="flex-grow bg-blue-900/10 rounded-md border border-blue-400/10 p-4 flex items-center justify-center">
+        {isFetching || !chartData ? (
+          <div className="text-center">
+            <p className="text-blue-200/80 mb-2">Loading candlestick data...</p>
+            <p className="text-xs text-blue-300/60">
+              Please wait while we fetch the latest market data.
+            </p>
+          </div>
+        ) : (
+            <ReactChart type="candlestick" data={chartData} options={options} />
+        )}
+      </div>
 
-        {/* Chart Display */}
-        <div className="flex-grow bg-blue-900/10 rounded-md border border-blue-400/10 p-4 flex items-center justify-center">
-          {isFetching || !chartData ? (
-              <div className="text-center">
-                <p className="text-blue-200/80 mb-2">Loading Price Chart Data</p>
-                <p className="text-xs text-blue-300/60">
-                  Please wait while we fetch the latest data.
-                </p>
-              </div>
-          ) : (
-              <Line data={chartData} />
-          )}
+      {/* Sentiment Metrics */}
+      <div className="mt-4 grid grid-cols-2 gap-y-2 text-xs">
+        <div className="flex items-center">
+          <span className="text-blue-200/70">Sentiment Score:</span>
         </div>
-
-        {/* Time Range Controls (display only for now) */}
-        <div className="mt-4 flex justify-between text-xs text-blue-200/70">
-          <span>24h</span>
-          <span>7d</span>
-          <span>30d</span>
-          <span>3m</span>
-          <span>1y</span>
-          <span>All</span>
+        <div className="text-right">
+          <span className="text-green-400">78/100</span>
+        </div>
+        <div className="flex items-center">
+          <span className="text-blue-200/70">24h Change:</span>
+        </div>
+        <div className="text-right">
+          <span className="text-green-400">+5.3%</span>
+        </div>
+        <div className="flex items-center">
+          <span className="text-blue-200/70">News Impact:</span>
+        </div>
+        <div className="text-right">
+          <span className="text-yellow-400">Neutral</span>
+        </div>
+        <div className="flex items-center">
+          <span className="text-blue-200/70">Social Media:</span>
+        </div>
+        <div className="text-right">
+          <span className="text-green-400">Positive</span>
         </div>
       </div>
+    </div>
   );
 }
