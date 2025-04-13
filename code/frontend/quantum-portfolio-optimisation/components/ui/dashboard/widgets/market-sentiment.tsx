@@ -11,10 +11,10 @@ import {
 } from "chart.js";
 
 import {
-  FinancialController,
   CandlestickController,
-  CandlestickElement,
-} from "chartjs-chart-financial";
+  CandlestickElement
+} from 'chartjs-chart-financial';
+
 
 // Register Chart.js components and financial chart types
 ChartJS.register(
@@ -23,10 +23,10 @@ ChartJS.register(
     TimeScale,
     Tooltip,
     Legend,
-    FinancialController,
     CandlestickController,
     CandlestickElement
 );
+
 
 // Register date adapter
 import "chartjs-adapter-date-fns";
