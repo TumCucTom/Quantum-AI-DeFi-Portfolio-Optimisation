@@ -3,14 +3,10 @@
 
 [CertAInty Quantum](https://supremacy.thomasbale.com/) is a suite of tools for quantum enhanced portfolio optimisation - made easy to understand and execute with informed AIs.
 
-- We enhance [**Starkware's Brian AI**](tbc) (|Brian⟩) with our quantum pre execution scripts.
+- We enhance Starkware's Brian AI (|Brian⟩) with our quantum pre execution scripts.
 - Empower users with quantum financial tools powered by [**Wormhole API**](/code/frontend/quantum-portfolio-optimisation/app/analysis/page.tsx)
 - Provide a **quantum informed XAI** assistant to demystify the quantum x (De)Fi world in an explainable manner
 - We use solana to rebalance portfoliio's for low cost (gas fees)
-
-## Video Walkthrough
-
-[See our video here](https://drive.google.com/file/d/1rJswaWRV4ZFv3y5omEYdseYWrqywxxYq/view?usp=share_link)
 
 ## Reasoning
 
